@@ -12,6 +12,7 @@ import { PaymentModal } from "./components/PaymentModal";
 import { DiscoverySection } from "./components/DiscoverySection";
 import { AgentSearchSection } from "./components/AgentSearchSection";
 import { DirectX402Caller } from "./components/DirectX402Caller";
+import { McpConnectionModal } from "./components/McpConnectionModal";
 import { styles } from "./styles";
 import "./styles.css";
 
@@ -40,6 +41,7 @@ function WalletDashboard() {
   } | null>(null);
   const [activeTab, setActiveTab] = useState<"wallet" | "discovery" | "agents">("wallet");
   const [directCallerModalOpen, setDirectCallerModalOpen] = useState(false);
+  const [mcpConnectionModalOpen, setMcpConnectionModalOpen] = useState(false);
 
   // Fetch wallet and profile on mount
   useEffect(() => {
@@ -202,18 +204,19 @@ function WalletDashboard() {
 
   return (
     <div style={styles.container}>
-      <header style={styles.header}>
-        <div style={styles.headerTitleContainer}>
+      <header style={styles.header} className="header">
+        <div style={styles.headerTitleContainer} className="header-title-container">
           <img 
             src="https://blue-acceptable-moth-851.mypinata.cloud/ipfs/bafkreigz5rv2tj7c7mut3up4zruh55bzfdajb4wpaeh4l7bqh3tffzef34?pinataGatewayToken=AOxI1_j6REen7ZvYuBtH8Zek2IS_8uV8LmNbXXdGbDlUKfMXnUQ1MvLVmKNZMrRm" 
             alt="Oops!402" 
             style={styles.logo}
+            className="header-logo"
           />
-          <h1 style={styles.title}>x402 Wallet</h1>
+          <h1 style={styles.title} className="header-title">x402 Wallet</h1>
         </div>
         <div style={styles.headerActions} className="header-actions">
           {balance && (
-            <div style={styles.headerBalance}>
+            <div style={styles.headerBalance} className="header-balance-mobile">
               <span style={styles.headerBalanceLabel}>Balance</span>
               <span style={styles.headerBalanceAmount}>
                 {formatBalance(balance.balance)} {balance.symbol}
@@ -221,12 +224,13 @@ function WalletDashboard() {
             </div>
           )}
           {userProfile && (
-            <div style={styles.userProfile}>
+            <div style={styles.userProfile} className="user-profile">
               {userProfile.picture && !avatarError ? (
                 <img 
                   src={userProfile.picture} 
                   alt={userProfile.name || userProfile.nickname || "User"} 
                   style={styles.userAvatar}
+                  className="user-avatar"
                   onError={() => setAvatarError(true)}
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
@@ -235,6 +239,7 @@ function WalletDashboard() {
               ) : (
                 <div 
                   style={styles.userAvatarFallback}
+                  className="user-avatar-fallback"
                   title={userProfile.name || userProfile.nickname || "User"}
                 >
                   {(userProfile.name || userProfile.nickname || "U").charAt(0).toUpperCase()}
@@ -242,14 +247,31 @@ function WalletDashboard() {
               )}
             </div>
           )}
+          <button
+            onClick={() => setMcpConnectionModalOpen(true)}
+            style={{
+              ...styles.link,
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
+            className="link"
+            title="Connect to ChatGPT or Claude"
+          >
+            <svg style={styles.linkIcon} className="link-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+            </svg>
+            <span>Connect MCP</span>
+          </button>
           <a href="/" style={styles.link} className="link">
-            <svg style={styles.linkIcon} viewBox="0 0 20 20" fill="currentColor">
+            <svg style={styles.linkIcon} className="link-icon" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
             </svg>
             <span>Home</span>
           </a>
           <a href="/logout" style={styles.link} className="link">
-            <svg style={styles.linkIcon} viewBox="0 0 20 20" fill="currentColor">
+            <svg style={styles.linkIcon} className="link-icon" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
             </svg>
             <span>Logout</span>
@@ -394,6 +416,11 @@ function WalletDashboard() {
           onClose={() => setDirectCallerModalOpen(false)}
         />
       )}
+
+      <McpConnectionModal
+        isOpen={mcpConnectionModalOpen}
+        onClose={() => setMcpConnectionModalOpen(false)}
+      />
     </div>
   );
 }

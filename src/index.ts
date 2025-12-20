@@ -902,6 +902,56 @@ async function main() {
     }
   });
 
+  // Serve static files (logos, etc.) from src/static directory
+  // This route should be placed after other specific routes to avoid conflicts
+  const staticFileLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 200, // 200 requests per minute
+    message: 'Too many requests for static files',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // Known static files to serve
+  const knownStaticFiles = ['chatgpt-logo.svg', 'claude-logo.png', 'mcp-logo.svg', 'lit-logo-white.svg'];
+  
+  app.get('/:filename', staticFileLimiter, (req, res, next) => {
+    const filename = req.params.filename;
+    
+    // Only serve known static files or files with static extensions
+    const allowedExtensions = ['.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.css'];
+    const ext = path.extname(filename).toLowerCase();
+    
+    // If it's not a known static file and doesn't have an allowed extension, pass to next route
+    if (!knownStaticFiles.includes(filename) && !allowedExtensions.includes(ext)) {
+      return next();
+    }
+
+    const srcStaticDir = path.join(__dirname, 'static');
+    const filePath = path.join(srcStaticDir, filename);
+    
+    // Security: ensure file is within static directory
+    if (!filePath.startsWith(srcStaticDir)) {
+      return res.status(403).send('Forbidden');
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return next(); // Pass to next route if file doesn't exist
+    }
+
+    // Set appropriate content type
+    const contentType = ext === '.svg' ? 'image/svg+xml' :
+                       ext === '.png' ? 'image/png' :
+                       ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' :
+                       ext === '.gif' ? 'image/gif' :
+                       ext === '.ico' ? 'image/x-icon' :
+                       ext === '.css' ? 'text/css' : 'application/octet-stream';
+    
+    res.setHeader('Content-Type', contentType);
+    res.sendFile(filePath);
+  });
+
   // Start bazaar crawl cron job (only for MCP servers, not auth-only servers)
   let bazaarCrawlInterval: NodeJS.Timeout | null = null;
   if (config.auth.mode !== 'auth_server') {
