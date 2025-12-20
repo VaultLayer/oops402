@@ -25,7 +25,7 @@ import { defineChain } from "viem";
 import { ethers } from "ethers";
 import { PKPAccount } from "./pkpSigner.js";
 import { logger } from "../shared/logger.js";
-import { sendGasSponsoredTransaction, waitForUserOperationTransaction, type GasSponsoredConfig } from "./gasSponsoredService.js";
+import { sendERC20TransferViaRelayer, type RelayerConfig } from "./relayerService.js";
 import type { PKPSessionSigs } from "./litService.js";
 
 // Default USDC contract address on Base
@@ -33,10 +33,9 @@ const DEFAULT_USDC_ADDRESS: Address = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA0291
 const DEFAULT_USDC_DECIMALS = 6;
 const DEFAULT_CHAIN_ID = 8453; // Base
 
-// Alchemy configuration
+// Alchemy configuration (for RPC URL)
 const ALCHEMY_BASE_RPC = process.env.ALCHEMY_BASE_RPC;
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
-const ALCHEMY_GAS_POLICY_ID = process.env.ALCHEMY_GAS_POLICY_ID;
 
 // ERC20 ABI (minimal - just what we need)
 const ERC20_ABI = [
@@ -223,8 +222,8 @@ export async function getBalances(
 
 /**
  * Transfer ERC20 token on any EVM chain
- * Uses gas sponsorship with EIP-7702 if ALCHEMY_GAS_POLICY_ID is configured,
- * otherwise falls back to standard transaction signing
+ * Uses relayer pattern: PKP wallet signs transaction, relayer pays gas
+ * This keeps the PKP wallet as a pure EOA (works with x402 payments)
  */
 export async function transferToken(
   pkpAccount: PKPAccount,
@@ -234,7 +233,7 @@ export async function transferToken(
     chainId?: number;
     tokenAddress?: Address;
     tokenDecimals?: number;
-    sessionSigs?: PKPSessionSigs; // Required for gas sponsorship
+    sessionSigs?: PKPSessionSigs; // Required for PKP signing
   }
 ): Promise<{
   transactionHash: Hex;
@@ -250,7 +249,6 @@ export async function transferToken(
     amount,
     chainId,
     tokenAddress,
-    useGasSponsorship: !!ALCHEMY_GAS_POLICY_ID,
   });
 
   // Get token decimals (use provided or fetch from contract)
@@ -265,52 +263,51 @@ export async function transferToken(
   // Parse amount to token units
   const amountInUnits = parseUnits(amount, tokenDecimals);
 
-  // Encode the function call
-  const data = encodeFunctionData({
-    abi: ERC20_ABI,
-    functionName: "transfer",
-    args: [to, amountInUnits] as [Address, bigint],
-  });
-
-  // Use gas sponsorship - it's required for this implementation
-  if (!ALCHEMY_GAS_POLICY_ID || !ALCHEMY_API_KEY || !options?.sessionSigs) {
+  // Use relayer pattern with transferWithAuthorization (ERC-3009)
+  // PKP wallet signs authorization, relayer pays gas
+  if (!options?.sessionSigs) {
     throw new Error(
-      'Gas sponsorship is required. Please configure ALCHEMY_GAS_POLICY_ID, ALCHEMY_API_KEY, and provide sessionSigs.'
+      'Session signatures are required for PKP wallet signing. Please provide sessionSigs.'
     );
   }
 
-  logger.debug("Sending gas-sponsored transaction with EIP-7702");
-  
-  const gasSponsoredConfig: GasSponsoredConfig = {
+  // Get RPC URL for the chain
+  const rpcUrl = ALCHEMY_BASE_RPC || (ALCHEMY_API_KEY 
+    ? `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+    : 'https://mainnet.base.org');
+
+  logger.debug("Sending ERC20 transfer via relayer using transferWithAuthorization", {
+    pkpAddress: pkpAccount.address,
+    tokenAddress,
+    to,
+    amount: amountInUnits.toString(),
+  });
+
+  const relayerConfig: RelayerConfig = {
     pkpPublicKey: pkpAccount.publicKey,
     pkpAddress: pkpAccount.address,
     sessionSigs: options.sessionSigs,
     chainId,
-    alchemyApiKey: ALCHEMY_API_KEY,
-    alchemyPolicyId: ALCHEMY_GAS_POLICY_ID,
+    rpcUrl,
   };
 
-  // Send gas-sponsored transaction
-  const uoHash = await sendGasSponsoredTransaction(
-    gasSponsoredConfig,
+  // Send ERC20 transfer via relayer using transferWithAuthorization (ERC-3009)
+  // This allows relayer to pay gas while PKP wallet just signs authorization
+  const txHash = await sendERC20TransferViaRelayer(
+    relayerConfig,
     tokenAddress,
-    0n, // value is 0 for ERC20 transfers
-    data
+    to,
+    amountInUnits
   );
 
-  logger.debug("Gas-sponsored user operation sent", { userOpHash: uoHash });
-
-  // Wait for the user operation to be mined
-  const result = await waitForUserOperationTransaction(uoHash, gasSponsoredConfig);
-
-  logger.debug("Gas-sponsored transaction confirmed", {
-    transactionHash: result.hash,
+  logger.debug("Transaction confirmed via relayer", {
+    transactionHash: txHash,
     chainId,
     tokenAddress,
   });
 
   return {
-    transactionHash: result.hash,
+    transactionHash: txHash,
     chainId,
     tokenAddress,
   };

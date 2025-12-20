@@ -33,6 +33,7 @@
     "@lit-protocol/contracts": "^0.0.90",
     "@lit-protocol/lit-auth-client": "^7.3.1",
     "@lit-protocol/lit-node-client": "^7.1.1",
+    "@lit-protocol/pkp-ethers": "^7.3.1",
     "@modelcontextprotocol/ext-apps": "https://pkg.pr.new/modelcontextprotocol/ext-apps/@modelcontextprotocol/ext-apps@95663d4",
     "@modelcontextprotocol/sdk": "^1.24.2",
     "@redis/client": "^1.6.0",

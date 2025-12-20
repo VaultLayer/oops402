@@ -65,7 +65,7 @@ function getSigner(): ethers.Wallet {
   return new ethers.Wallet(privateKey, provider);
 }
 
-async function getLitNodeClient(): Promise<LitNodeClient> {
+export async function getLitNodeClient(): Promise<LitNodeClient> {
   if (litNodeClient === null) {
     logger.debug("Connecting LitNode client", { network: LIT_NETWORK });
     litNodeClient = new LitNodeClient({
@@ -134,7 +134,7 @@ export async function initializeLitServices(): Promise<void> {
 function getOAuthAuthMethodInfo(userId: string) {
   return {
     authMethodType: ethers.utils.keccak256(
-      ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V04")
+      ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V05")
     ),
     authMethodId: ethers.utils.keccak256(
       ethers.utils.toUtf8Bytes(`oauth:${userId}`)

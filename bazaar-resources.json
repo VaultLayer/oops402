@@ -26,7 +26,7 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:38:49.982Z",
+      "lastUpdated": "2025-12-19T05:11:48.213Z",
       "resource": "https://x402.aiape.tech/signals",
       "type": "http",
       "x402Version": 1
@@ -91,7 +91,7 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:38:49.9Z",
+      "lastUpdated": "2025-12-19T05:11:47.947Z",
       "resource": "https://x402.lucyos.ai/x402/tools/analyze_token",
       "type": "http",
       "x402Version": 1
@@ -100,29 +100,56 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "AI poker decision from ChatGPT, Claude, Grok, or Deepseek",
+          "description": "Extracts rich structured metadata from a URL: title, description, og/twitter tags, json-ld, images, headings, response headers, and more. Perfect for SEO research or metadata indexing & analysis",
           "extra": {
             "name": "USD Coin",
             "version": "2"
           },
-          "maxAmountRequired": "50000",
-          "maxTimeoutSeconds": 120,
-          "mimeType": "",
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
           "network": "base",
           "outputSchema": {
             "input": {
               "discoverable": true,
               "method": "GET",
+              "queryParams": {
+                "includeResponseBody": {
+                  "description": "If set to true, includes the full HTML response body as a string in the result.",
+                  "required": false,
+                  "type": "string"
+                },
+                "url": {
+                  "description": "The URL from which to extract metadata.",
+                  "required": true,
+                  "type": "string"
+                }
+              },
               "type": "http"
+            },
+            "output": {
+              "properties": {
+                "queryParameters": {
+                  "type": "object"
+                },
+                "results": {
+                  "description": "Metadata objects with requestUrl, url (final after redirects), and metadata (structured JSON with all extracted fields)",
+                  "type": "array"
+                },
+                "success": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
             }
           },
-          "payTo": "0xb1D321629B47DA8886cb2d1F30E377F01C8d2189",
-          "resource": "http://x402-poker-server-production.up.railway.app/api/decision",
+          "payTo": "0xffA9155A0e4B3d8d42351Da226cC1feEe449686f",
+          "resource": "https://www.minifetch.com/api/v1/x402/extract/url-metadata",
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:35:53.766Z",
-      "resource": "http://x402-poker-server-production.up.railway.app/api/decision",
+      "lastUpdated": "2025-12-19T05:09:12.163Z",
+      "resource": "https://www.minifetch.com/api/v1/x402/extract/url-metadata",
       "type": "http",
       "x402Version": 1
     },
@@ -221,8 +248,588 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:30:04.362Z",
+      "lastUpdated": "2025-12-19T05:04:13.68Z",
       "resource": "https://api.itsgloria.ai/news",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Create image using Flux Pro AI model",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "20000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xF338bDD9ec443335B1c33aD3bb21A421A36f97eA",
+          "resource": "https://www.genbase.fun/api/image/create",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:43:10.054Z",
+      "resource": "https://www.genbase.fun/api/image/create",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Purchase 1000 Gazette API credits for regulatory signals from SEC, Fed, CFTC, OCC, FDIC, FINRA, CFPB, Treasury. Returns API key for $0.01/request signal access.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "body_fields": {
+                "wallet_address": {
+                  "description": "Optional wallet address (auto-detected from x402 payment if not provided)",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "body_type": "json",
+              "discoverable": true,
+              "header_fields": null,
+              "method": "POST",
+              "query_params": null,
+              "type": "http"
+            },
+            "output": {
+              "api_key": "string",
+              "balance": "integer",
+              "credits_added": "integer",
+              "status": "string"
+            }
+          },
+          "payTo": "0x2e77bd054327568024ec8e0633406cbe2ce02ddd",
+          "resource": "https://api.gazette.bot/credits",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:38:51.679Z",
+      "resource": "https://api.gazette.bot/credits",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+          "description": "acp job budget ($0.001)",
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          },
+          "maxAmountRequired": "1000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base-sepolia",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "headerFields": {
+                "X-Budget": {
+                  "description": "Optional budget amount in USD (e.g., $0.01). If not provided, defaults to $0.001",
+                  "example": "$0.01",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "method": "GET",
+              "type": "http"
+            },
+            "output": null
+          },
+          "payTo": "0x8Db6B1c839Fc8f6bd35777E194677B67b4D51928",
+          "resource": "http://dev-acp-x402.virtuals.io/acp-budget",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:36:26.516Z",
+      "resource": "http://dev-acp-x402.virtuals.io/acp-budget",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Purchase and start an interactive story script",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "300000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "text/plain",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "pathParams": {
+                "id": {
+                  "description": "Script ID",
+                  "required": true,
+                  "type": "number"
+                }
+              },
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "instructions": {
+                  "description": "Instructions to start the story",
+                  "type": "string"
+                },
+                "script": {
+                  "description": "The full script content",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "payTo": "0x3e9F7F14f88FB23911396705d51326497244Ca7b",
+          "resource": "http://x402.storyverselab.ai/script/2/purchase",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:29:46.838Z",
+      "metadata": {},
+      "resource": "http://x402.storyverselab.ai/script/2/purchase",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Mode-x402 is a complete library of signals and indicators for intelligent trading agents",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "1000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "body_fields": {
+                "indicators": {
+                  "description": "List of indicators to compute",
+                  "items": {
+                    "properties": {
+                      "kind": {
+                        "description": "Type of indicator, e.g., 'ema', 'bbands', 'macd'",
+                        "type": "string"
+                      },
+                      "limit": {
+                        "description": "Number of data points to compute",
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "symbol": {
+                  "description": "Trading pair symbol, e.g., 'ETHUSDT'",
+                  "type": "string"
+                },
+                "time_frame": {
+                  "description": "Time frame for the indicator, e.g., '5m', '1h'",
+                  "type": "string"
+                }
+              },
+              "body_type": "json",
+              "discoverable": true,
+              "header_fields": {},
+              "method": "POST",
+              "query_params": {},
+              "type": "http"
+            },
+            "output": {
+              "data": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "data": {
+                    "items": {
+                      "properties": {
+                        "id": {
+                          "description": "Unique identifier for the indicator instance",
+                          "type": "string"
+                        },
+                        "indicator": {
+                          "description": "Type of indicator",
+                          "type": "string"
+                        },
+                        "meta": {
+                          "properties": {
+                            "category": {
+                              "description": "Category of the indicator",
+                              "type": "string"
+                            },
+                            "description": {
+                              "description": "Description of the indicator",
+                              "type": "string"
+                            },
+                            "display_name": {
+                              "description": "Display name of the indicator",
+                              "type": "string"
+                            },
+                            "timezone": {
+                              "description": "Timezone of the data",
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "symbol": {
+                          "description": "Trading pair symbol",
+                          "type": "string"
+                        },
+                        "time_frame": {
+                          "description": "Time frame for the indicator",
+                          "type": "string"
+                        },
+                        "values": {
+                          "items": {
+                            "properties": {
+                              "timestamp": {
+                                "description": "ISO format date time of the data point",
+                                "type": "string"
+                              },
+                              "value": {
+                                "description": "Value of the indicator at the timestamp",
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "status": {
+                    "description": "Status of the request",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "payTo": "0xe19c32d82d4cfb9d121fa04f9d22b11648f320f5",
+          "resource": "https://x402.mode.network/ta/indicators",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:29:28.401Z",
+      "resource": "https://x402.mode.network/ta/indicators",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Access top liquidity pools by TVL across multiple chains (Arbitrum, Base, Ethereum)",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 90,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            },
+            "output": {
+              "isDiscoverable": true
+            }
+          },
+          "payTo": "0xC231db8a696d922f82e32Ed2BBdd492105E7db41",
+          "resource": "https://nacian.finance/api/x402/pools/top-pools-by-tvl",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:28:03.784Z",
+      "resource": "https://nacian.finance/api/x402/pools/top-pools-by-tvl",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "channel": "crypto-base",
+          "description": "Access to protected resource",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "displayName": "AgentPayWall-402",
+              "method": "GET",
+              "name": "AgentPayWall-402",
+              "type": "http"
+            }
+          },
+          "payTo": "0x66FA4D79cA84016b42352BE33C908Dd812952Ec8",
+          "resource": "https://agent.paywall402.com/resource",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:26:36.388Z",
+      "resource": "https://agent.paywall402.com/resource",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "List Polymarket events with filtering by status, category, and volume",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "queryParams": {
+                "active": "string parameter",
+                "ascending": "string parameter",
+                "closed": "string parameter",
+                "limit": "integer parameter",
+                "offset": "integer parameter",
+                "order": "string parameter",
+                "tag_id": "string parameter"
+              },
+              "type": "http"
+            },
+            "output": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "additionalProperties": false,
+              "properties": {
+                "data": {},
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "data"
+              ],
+              "type": "object"
+            }
+          },
+          "payTo": "0xfbd7b7Ed48146aD9bEfF956212c77cE056815ad0",
+          "resource": "https://polymarketeer.vercel.app/api/x402/polymarket/events",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:26:31.893Z",
+      "resource": "https://polymarketeer.vercel.app/api/x402/polymarket/events",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "0.5 USDC on base",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "500000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "text/plain",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0x5ba9355a10611Ed4339526472a59bEfed3549bAD",
+          "resource": "https://gateway.grapevine.fyi/x402/cid/bafybeif5ck7iuvkdq5n2a2hxxvbwaoade3p43pbyp2jhb355bg6yl7y3fa",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:26:00.198Z",
+      "resource": "https://gateway.grapevine.fyi/x402/cid/bafybeif5ck7iuvkdq5n2a2hxxvbwaoade3p43pbyp2jhb355bg6yl7y3fa",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "View the roadmap",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "method": "GET",
+              "type": "http"
+            },
+            "output": {
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "payTo": "0x70DA5f2A851FB936eFF8207f2733b0914cC44B7D",
+          "resource": "https://x721.dev/roadmap",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:22:56.142Z",
+      "resource": "https://x721.dev/roadmap",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Access fee",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "1000000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/octet-stream",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0x941f29fddA2CB16649b70D1C28aA5933DBba6295",
+          "resource": "https://x402hackathon.mypinata.cloud/x402/cid/bafybeibpxcpq74uhen4tkeu4jw4bwimqsnpvjidogea4yuvelvhlfbkmyu",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:21:12.155Z",
+      "metadata": {},
+      "resource": "https://x402hackathon.mypinata.cloud/x402/cid/bafybeibpxcpq74uhen4tkeu4jw4bwimqsnpvjidogea4yuvelvhlfbkmyu",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "channel": "crypto-base",
+          "description": "Social media reputation analysis from Twitter/X and community feedback with sentiment scoring. Detect fake engagement patterns and measure trust indicators for reputation-based decisions. Price: $0.01 USDC",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "url": {
+                  "description": "The URL of the x402 server to analyze social presence (e.g., https://mesh.heurist.xyz). If unsure what to input, first call get_available_resources to discover valid servers.",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "headerFields": {
+                "X-PAYMENT": {
+                  "description": "Base64-encoded JSON PaymentPayload; automatically filled by x402scan",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "last_validated": "string|null",
+              "result_data": "object|null",
+              "server_name": "string",
+              "social_sentiment_score": "number|null",
+              "status": {
+                "type": "string"
+              },
+              "url": "string"
+            }
+          },
+          "payTo": "0x0495d60c927B97d67D5018C6AA65C9b2bebaeED9",
+          "resource": "https://x402-secure-api.t54.ai/x402/tools/get_social_trust",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T04:19:51.881Z",
+      "resource": "https://x402-secure-api.t54.ai/x402/tools/get_social_trust",
       "type": "http",
       "x402Version": 1
     },
@@ -294,7 +901,7 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:19:37.793Z",
+      "lastUpdated": "2025-12-19T04:10:25.716Z",
       "resource": "https://x402-secure-api.t54.ai/x402/tools/get_overall_score",
       "type": "http",
       "x402Version": 1
@@ -302,233 +909,51 @@
     {
       "accepts": [
         {
-          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
-          "description": "Base GPT wrapper API using x402 payments. Default direct call: model gpt-5-mini, max_output_tokens=2000, fixed price 0.01 USDC for up to 1000 input tokens. For all other settings the price is computed per model as (input_tokens * input_price_per_million + max_output_tokens * output_price_per_million) / 1,000,000, with a minimum of 0.001 USDC and always rounded up to 6 decimals. Optional max_input_tokens lets you cap the input tokens used for pricing; if the message is longer than this cap the server returns an error instead of under-pricing. Optional action=message (or omitting action) performs a direct GPT call with the given message. Optional action=create creates a custom agent with the given message as preprompt for 0.001 USDC (no OpenAI call), stores a base_price_usdc using (max_input_tokens_for_agent or 1000) + preprompt + max_output_tokens, and returns a custom_id. Optional action=list lists up to 100 recent custom agents for the paying wallet for 0.001 USDC without calling OpenAI. Custom agents can be called via POST /base/llm/gpt with custom_id, or POST /base/llm/gpt/{custom_id}. Each custom agent has a fixed price per call based on its stored preprompt, model, max_output_tokens and max_input_tokens; if the runtime message is longer than max_input_tokens the server returns an error. This specific request uses model gpt-5-mini with max_output_tokens=2000. Pricing mode: default. Prepaid price (x402) for this request: 0.010000 USDC.",
-          "extra": {
-            "avatarUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
-            "chainId": 8453,
-            "decimals": 6,
-            "eip712": {
-              "name": "USD Coin",
-              "version": "2"
-            },
-            "iconUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
-            "kind": "llm-gpt",
-            "name": "USD Coin",
-            "pricing": {
-              "amount": 0.01,
-              "currency": "USDC",
-              "defaultAmount": 0.01,
-              "isAgentCall": false,
-              "isCreateAction": false,
-              "maxOutputTokens": 2000,
-              "minAmount": 0.001,
-              "mode": "default",
-              "model": "gpt-5-mini",
-              "network": "Base"
-            },
-            "serviceDescription": "x402Factory Base endpoints for agents (notes, LLMs, TTS, Telegram, coin prices, payments).",
-            "serviceName": "x402Factory",
-            "serviceUrl": "https://x402factory.ai",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "action": {
-                  "description": "Optional action. Use 'message' (or omit action) for a direct GPT call, 'create' to create a custom agent with a preprompt, or 'list' to list your custom agents without calling OpenAI.",
-                  "enum": [
-                    "message",
-                    "create",
-                    "list"
-                  ],
-                  "required": false,
-                  "type": "string"
-                },
-                "custom_id": {
-                  "description": "Optional custom agent ID returned from action=create. When set, the preprompt + model from that agent are used. Can also be provided via URL: /base/llm/gpt/{custom_id}.",
-                  "required": false,
-                  "type": "string"
-                },
-                "max_input_tokens": {
-                  "description": "Optional hard ceiling on input tokens used for pricing. For normal calls this caps the user message tokens. For custom agents this caps the user message tokens on top of the fixed preprompt. If the actual message is longer than this value, the server returns an error instead of under-pricing.",
-                  "required": false,
-                  "type": "number"
-                },
-                "max_output_tokens": {
-                  "description": "Maximum number of output tokens. Default 2000. Higher limits increase the prepaid price because x402 payments are upfront.",
-                  "required": false,
-                  "type": "number"
-                },
-                "message": {
-                  "description": "User message for the LLM. Required for normal GPT calls. For action=create this becomes the preprompt that is stored for the custom agent.",
-                  "required": false,
-                  "type": "string"
-                },
-                "model": {
-                  "description": "Logical model name. One of: gpt-5.1, gpt-5-mini (default), gpt-5-nano, gpt-5-pro. Pricing is per model using per-million token rates.",
-                  "enum": [
-                    "gpt-5.1",
-                    "gpt-5-mini",
-                    "gpt-5-nano",
-                    "gpt-5-pro"
-                  ],
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "action": {
-                "description": "Action performed: 'call' for direct GPT calls, 'call_custom' for custom agents, 'create' for new custom agents, 'list' for listing your custom agents.",
-                "type": "string"
-              },
-              "agents": {
-                "description": "For action=list: up to 100 recent custom agents for the paying wallet. Each entry includes custom_id, model, max_output_tokens, base_price_usdc, max_input_tokens, preprompt_preview (first 250 chars), created_at and updated_at.",
-                "type": "array"
-              },
-              "base_price_usdc": {
-                "description": "For action=create, the stored base price for the agent (max_input_tokens_for_agent + preprompt + max_output_tokens) using the selected model.",
-                "type": "number"
-              },
-              "custom_id": {
-                "description": "Custom agent ID used for this call, if any. For action=create this is the newly created agent ID.",
-                "type": "string"
-              },
-              "estimated_input_tokens": {
-                "description": "Estimated number of input tokens used for pricing. For custom agents this includes both preprompt and the agent's configured max_input_tokens.",
-                "type": "number"
-              },
-              "max_output_tokens": {
-                "description": "Maximum output tokens used for this call (after applying any defaults and limits).",
-                "type": "number"
-              },
-              "model": {
-                "description": "Model used for this call",
-                "type": "string"
-              },
-              "ok": {
-                "description": "True on success",
-                "type": "boolean"
-              },
-              "preprompt": {
-                "description": "For action=create, the stored preprompt text. For custom calls, the preprompt used for the agent.",
-                "type": "string"
-              },
-              "price_usdc": {
-                "description": "Price charged for this call in USDC (6 decimals, rounded up). Minimum is 0.001 USDC. Default direct calls cost 0.01 USDC for up to 1000 input tokens with gpt-5-mini and max_output_tokens=2000.",
-                "type": "number"
-              },
-              "reply": {
-                "description": "For GPT calls, the assistant reply text from OpenAI.",
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0x402FaCcC3fAeb72351CC2b68C7966faF5f22B0d4",
-          "resource": "https://x402factory.ai/base/llm/gpt",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T21:15:20.079Z",
-      "resource": "https://x402factory.ai/base/llm/gpt",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "ChromBot Public Sale - Coming Soon! Be the first to know when registration opens. Developed by EvalEngine & Chromia team.",
+          "description": "Purchase and start an interactive story script",
           "extra": {
             "name": "USD Coin",
             "version": "2"
           },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "input": {
-                "bodyFields": {},
-                "bodyType": "json",
-                "method": "POST",
-                "type": "http"
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0x21dfc81726538fCFd7DFb5E4D14aAB4475ef8694",
-          "resource": "https://chrombot-x402-inohxop4k-eval-engine.vercel.app/chrombot-public-sale",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T21:12:49.818Z",
-      "resource": "https://chrombot-x402-inohxop4k-eval-engine.vercel.app/chrombot-public-sale",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Check if a URL is allowed to be fetched according to the website's robots.txt file. Use this super-cheap endpoint for $0.001 before making requests to our other endpoints to avoid spending extra on un-fetchable URLs",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "1000",
+          "maxAmountRequired": "300000",
           "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
+          "mimeType": "text/plain",
           "network": "base",
           "outputSchema": {
             "input": {
               "discoverable": true,
               "method": "GET",
-              "queryParams": {
-                "url": {
-                  "description": "The URL to check against robots.txt",
+              "pathParams": {
+                "id": {
+                  "description": "Script ID",
                   "required": true,
-                  "type": "string"
+                  "type": "number"
                 }
               },
               "type": "http"
             },
             "output": {
               "properties": {
-                "queryParameters": {
-                  "type": "object"
+                "instructions": {
+                  "description": "Instructions to start the story",
+                  "type": "string"
                 },
-                "results": {
-                  "type": "array"
-                },
-                "success": {
-                  "type": "boolean"
+                "script": {
+                  "description": "The full script content",
+                  "type": "string"
                 }
               },
               "type": "object"
             }
           },
-          "payTo": "0xffA9155A0e4B3d8d42351Da226cC1feEe449686f",
-          "resource": "https://minifetch.com/api/v1/x402/preflight/url-check",
+          "payTo": "0x3e9F7F14f88FB23911396705d51326497244Ca7b",
+          "resource": "http://x402.storyverselab.ai/script/1/purchase",
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:09:51.819Z",
-      "resource": "https://minifetch.com/api/v1/x402/preflight/url-check",
+      "lastUpdated": "2025-12-19T04:05:55.956Z",
+      "metadata": {},
+      "resource": "http://x402.storyverselab.ai/script/1/purchase",
       "type": "http",
       "x402Version": 1
     },
@@ -536,56 +961,50 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Extracts rich structured metadata from a URL: title, description, og/twitter tags, json-ld, images, headings, response headers, and more. Perfect for SEO research or metadata indexing & analysis",
+          "description": "Purchase and start an interactive story script",
           "extra": {
             "name": "USD Coin",
             "version": "2"
           },
-          "maxAmountRequired": "10000",
+          "maxAmountRequired": "300000",
           "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
+          "mimeType": "text/plain",
           "network": "base",
           "outputSchema": {
             "input": {
               "discoverable": true,
               "method": "GET",
-              "queryParams": {
-                "includeResponseBody": {
-                  "description": "If set to true, includes the full HTML response body as a string in the result.",
-                  "required": false,
-                  "type": "string"
-                },
-                "url": {
-                  "description": "The URL from which to extract metadata.",
+              "pathParams": {
+                "id": {
+                  "description": "Script ID",
                   "required": true,
-                  "type": "string"
+                  "type": "number"
                 }
               },
               "type": "http"
             },
             "output": {
               "properties": {
-                "queryParameters": {
-                  "type": "object"
+                "instructions": {
+                  "description": "Instructions to start the story",
+                  "type": "string"
                 },
-                "results": {
-                  "description": "Metadata objects with requestUrl, url (final after redirects), and metadata (structured JSON with all extracted fields)",
-                  "type": "array"
-                },
-                "success": {
-                  "type": "boolean"
+                "script": {
+                  "description": "The full script content",
+                  "type": "string"
                 }
               },
               "type": "object"
             }
           },
-          "payTo": "0xffA9155A0e4B3d8d42351Da226cC1feEe449686f",
-          "resource": "https://www.minifetch.com/api/v1/x402/extract/url-metadata",
+          "payTo": "0x3e9F7F14f88FB23911396705d51326497244Ca7b",
+          "resource": "http://x402.storyverselab.ai/script/3/purchase",
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:07:24.023Z",
-      "resource": "https://www.minifetch.com/api/v1/x402/extract/url-metadata",
+      "lastUpdated": "2025-12-19T03:33:53.164Z",
+      "metadata": {},
+      "resource": "http://x402.storyverselab.ai/script/3/purchase",
       "type": "http",
       "x402Version": 1
     },
@@ -785,7 +1204,7 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T21:05:06.467Z",
+      "lastUpdated": "2025-12-19T03:30:17.354Z",
       "resource": "https://api.testnet.grove.city/v1/fund",
       "type": "http",
       "x402Version": 1
@@ -794,431 +1213,62 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Text-to-Image Generation",
+          "description": "Calculate APR for liquidity pools across multiple chains (Arbitrum, Base, Ethereum)",
           "extra": {
             "name": "USD Coin",
             "version": "2"
           },
-          "maxAmountRequired": "5694",
-          "maxTimeoutSeconds": 120,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "guidance": {
-                  "description": "Guidance scale for generation (1-30)",
-                  "type": "number"
-                },
-                "height": {
-                  "description": "Image height in pixels, must be divisible by 64 (128-2048, default: 1024)",
-                  "type": "number"
-                },
-                "model": {
-                  "description": "Image model to use",
-                  "type": "string"
-                },
-                "negativePrompt": {
-                  "description": "Negative prompt to avoid certain elements (max 3000 chars)",
-                  "type": "string"
-                },
-                "numberResults": {
-                  "description": "Number of images to generate (1-4, default: 1)",
-                  "type": "number"
-                },
-                "prompt": {
-                  "description": "Text description of the image to generate (2-3000 chars)",
-                  "required": true,
-                  "type": "string"
-                },
-                "seed": {
-                  "description": "Random seed for reproducibility",
-                  "type": "number"
-                },
-                "steps": {
-                  "description": "Number of inference steps (1-50)",
-                  "type": "number"
-                },
-                "width": {
-                  "description": "Image width in pixels, must be divisible by 64 (128-2048, default: 1024)",
-                  "type": "number"
-                }
-              },
-              "bodyType": "json",
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "images": {
-                "description": "Array of generated image objects",
-                "items": {
-                  "properties": {
-                    "url": {
-                      "description": "CDN URL of the generated image",
-                      "type": "string"
-                    },
-                    "uuid": {
-                      "description": "Unique identifier for the image",
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              "model": {
-                "description": "Model used for generation",
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0xEb4DA07Be74b26b2966b3cD07842cADE70E47D53",
-          "resource": "https://api.x-router.ai/v1/images/generate",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T21:04:17.786Z",
-      "resource": "https://api.x-router.ai/v1/images/generate",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Get current weather for a location",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "location": {
-                  "description": "City name, e.g., 'London'",
-                  "required": true,
-                  "type": "string"
-                },
-                "units": {
-                  "description": "metric, imperial, or kelvin",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0x55E911B8cF82A2657ff6f6cB57A5c8D83ea4D45A",
-          "resource": "https://padelmaps.org/api/x402-tools/weather/current",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T20:58:24.132Z",
-      "resource": "https://padelmaps.org/api/x402-tools/weather/current",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Mode-x402 is a complete library of signals and indicators for intelligent trading agents",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "1000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "body_fields": {
-                "indicators": {
-                  "description": "List of indicators to compute",
-                  "items": {
-                    "properties": {
-                      "kind": {
-                        "description": "Type of indicator, e.g., 'ema', 'bbands', 'macd'",
-                        "type": "string"
-                      },
-                      "limit": {
-                        "description": "Number of data points to compute",
-                        "type": "integer"
-                      }
-                    },
-                    "required": [
-                      "kind"
-                    ],
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "symbol": {
-                  "description": "Trading pair symbol, e.g., 'ETHUSDT'",
-                  "type": "string"
-                },
-                "time_frame": {
-                  "description": "Time frame for the indicator, e.g., '5m', '1h'",
-                  "type": "string"
-                }
-              },
-              "body_type": "json",
-              "discoverable": true,
-              "header_fields": {},
-              "method": "POST",
-              "query_params": {},
-              "type": "http"
-            },
-            "output": {
-              "data": {
-                "$schema": "https://json-schema.org/draft/2020-12/schema",
-                "additionalProperties": false,
-                "properties": {
-                  "data": {
-                    "items": {
-                      "properties": {
-                        "id": {
-                          "description": "Unique identifier for the indicator instance",
-                          "type": "string"
-                        },
-                        "indicator": {
-                          "description": "Type of indicator",
-                          "type": "string"
-                        },
-                        "meta": {
-                          "properties": {
-                            "category": {
-                              "description": "Category of the indicator",
-                              "type": "string"
-                            },
-                            "description": {
-                              "description": "Description of the indicator",
-                              "type": "string"
-                            },
-                            "display_name": {
-                              "description": "Display name of the indicator",
-                              "type": "string"
-                            },
-                            "timezone": {
-                              "description": "Timezone of the data",
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
-                        },
-                        "symbol": {
-                          "description": "Trading pair symbol",
-                          "type": "string"
-                        },
-                        "time_frame": {
-                          "description": "Time frame for the indicator",
-                          "type": "string"
-                        },
-                        "values": {
-                          "items": {
-                            "properties": {
-                              "timestamp": {
-                                "description": "ISO format date time of the data point",
-                                "type": "string"
-                              },
-                              "value": {
-                                "description": "Value of the indicator at the timestamp",
-                                "type": [
-                                  "number",
-                                  "null"
-                                ]
-                              }
-                            },
-                            "type": "object"
-                          },
-                          "type": "array"
-                        }
-                      },
-                      "type": "object"
-                    },
-                    "type": "array"
-                  },
-                  "status": {
-                    "description": "Status of the request",
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "payTo": "0xe19c32d82d4cfb9d121fa04f9d22b11648f320f5",
-          "resource": "https://x402.mode.network/ta/indicators",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T20:48:53.953Z",
-      "resource": "https://x402.mode.network/ta/indicators",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Payment for Ask Surf chat ($0.20 USDC)",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "200000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "user_query": {
-                  "description": "Single user query",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "headerFields": {
-                "X-PAYMENT": {
-                  "description": "Base64-encoded JSON PaymentPayload; automatically filled by x402scan",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "content": "string",
-              "model": "string",
-              "raw_response": "object|null",
-              "reasoning": "string|null"
-            }
-          },
-          "payTo": "0x4e2ef8df36a74b168333e92686018c3b3fb2e3e7",
-          "resource": "https://x402.asksurf.ai/x402/tools/ask_surf_chat",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T20:48:51.998Z",
-      "resource": "https://x402.asksurf.ai/x402/tools/ask_surf_chat",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Payment for Ask Surf chat ($0.20 USDC)",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "200000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "user_query": {
-                  "description": "Single user query",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "headerFields": {
-                "X-PAYMENT": {
-                  "description": "Base64-encoded JSON PaymentPayload; automatically filled by x402scan",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "content": "string",
-              "model": "string",
-              "raw_response": "object|null",
-              "reasoning": "string|null"
-            }
-          },
-          "payTo": "0x4e2ef8df36a74b168333e92686018c3b3fb2e3e7",
-          "resource": "https://ask-surf-x402-production.up.railway.app/x402/tools/ask_surf_chat",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T20:47:05.613Z",
-      "resource": "https://ask-surf-x402-production.up.railway.app/x402/tools/ask_surf_chat",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Extracts a clean, token-efficient content summary as markdown from a URL. Removes ads, nav, scripts. Much more efficient than raw HTML fetches for LLMs",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "2000",
-          "maxTimeoutSeconds": 60,
+          "maxAmountRequired": "20000",
+          "maxTimeoutSeconds": 90,
           "mimeType": "application/json",
           "network": "base",
           "outputSchema": {
             "input": {
               "discoverable": true,
               "method": "GET",
-              "queryParams": {
-                "includeMediaUrls": {
-                  "description": "If set to true, includes image and video urls.",
-                  "required": false,
-                  "type": "string"
-                },
-                "url": {
-                  "description": "The URL from which to extract the content summary.",
-                  "required": true,
-                  "type": "string"
-                }
-              },
               "type": "http"
             },
             "output": {
-              "properties": {
-                "queryParameters": {
-                  "type": "object"
-                },
-                "results": {
-                  "description": "Extracted content objects with requestUrl, url (final after redirects), and summary (clean markdown)",
-                  "type": "array"
-                },
-                "success": {
-                  "type": "boolean"
-                }
-              },
-              "type": "object"
+              "isDiscoverable": true
             }
           },
-          "payTo": "0xffA9155A0e4B3d8d42351Da226cC1feEe449686f",
-          "resource": "https://minifetch.com/api/v1/x402/extract/url-content",
+          "payTo": "0xC231db8a696d922f82e32Ed2BBdd492105E7db41",
+          "resource": "https://nacian.finance/api/x402/pools/top-pools-by-apr",
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T20:36:37.811Z",
-      "metadata": {},
-      "resource": "https://minifetch.com/api/v1/x402/extract/url-content",
+      "lastUpdated": "2025-12-19T03:19:27.655Z",
+      "resource": "https://nacian.finance/api/x402/pools/top-pools-by-apr",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Create video using Sora 2 AI model",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "200000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xF338bDD9ec443335B1c33aD3bb21A421A36f97eA",
+          "resource": "https://www.genbase.fun/api/video/create-sora2",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T02:56:19.771Z",
+      "resource": "https://www.genbase.fun/api/video/create-sora2",
       "type": "http",
       "x402Version": 1
     },
@@ -1418,7 +1468,7 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T20:14:31.817Z",
+      "lastUpdated": "2025-12-19T02:45:05.977Z",
       "resource": "https://api.grove.city/v1/fund",
       "type": "http",
       "x402Version": 1
@@ -1427,29 +1477,44 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "0.5 USDC on base",
+          "description": "Get your daily horoscope",
           "extra": {
             "name": "USD Coin",
             "version": "2"
           },
-          "maxAmountRequired": "500000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "text/plain",
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
           "network": "base",
           "outputSchema": {
             "input": {
               "discoverable": true,
               "method": "GET",
+              "queryParams": {
+                "date": "Date in format YYYY-MM-DD or 'today' (optional, defaults to today)",
+                "sign": "Zodiac sign (options: aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces)"
+              },
               "type": "http"
+            },
+            "output": {
+              "properties": {
+                "data": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
             }
           },
-          "payTo": "0x5ba9355a10611Ed4339526472a59bEfed3549bAD",
-          "resource": "https://gateway.grapevine.fyi/x402/cid/bafybeif5ck7iuvkdq5n2a2hxxvbwaoade3p43pbyp2jhb355bg6yl7y3fa",
+          "payTo": "0xbAd1Aa224bFe4fEb460E12b2553DcDf98a7098d0",
+          "resource": "https://x402-tools.vercel.app/api/horoscope",
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T20:02:50.138Z",
-      "resource": "https://gateway.grapevine.fyi/x402/cid/bafybeif5ck7iuvkdq5n2a2hxxvbwaoade3p43pbyp2jhb355bg6yl7y3fa",
+      "lastUpdated": "2025-12-19T02:27:48.117Z",
+      "resource": "https://x402-tools.vercel.app/api/horoscope",
       "type": "http",
       "x402Version": 1
     },
@@ -1457,38 +1522,659 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "acp job budget ($0.001)",
+          "description": "ChromBot Public Sale - Coming Soon! Be the first to know when registration opens. Developed by EvalEngine & Chromia team.",
           "extra": {
             "name": "USD Coin",
             "version": "2"
           },
-          "maxAmountRequired": "1000",
+          "maxAmountRequired": "10000",
           "maxTimeoutSeconds": 300,
           "mimeType": "application/json",
           "network": "base",
           "outputSchema": {
             "input": {
               "discoverable": true,
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "input": {
+                "bodyFields": {},
+                "bodyType": "json",
+                "method": "POST",
+                "type": "http"
+              },
+              "type": "object"
+            }
+          },
+          "payTo": "0x21dfc81726538fCFd7DFb5E4D14aAB4475ef8694",
+          "resource": "https://chrombot-x402-inohxop4k-eval-engine.vercel.app/chrombot-public-sale",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:59:33.574Z",
+      "resource": "https://chrombot-x402-inohxop4k-eval-engine.vercel.app/chrombot-public-sale",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Check if a URL is allowed to be fetched according to the website's robots.txt file. Use this super-cheap endpoint for $0.001 before making requests to our other endpoints to avoid spending extra on un-fetchable URLs",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "1000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "queryParams": {
+                "url": {
+                  "description": "The URL to check against robots.txt",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "queryParameters": {
+                  "type": "object"
+                },
+                "results": {
+                  "type": "array"
+                },
+                "success": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "payTo": "0xffA9155A0e4B3d8d42351Da226cC1feEe449686f",
+          "resource": "https://minifetch.com/api/v1/x402/preflight/url-check",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:56:33.765Z",
+      "resource": "https://minifetch.com/api/v1/x402/preflight/url-check",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Text-to-Image Generation",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "5694",
+          "maxTimeoutSeconds": 120,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "guidance": {
+                  "description": "Guidance scale for generation (1-30)",
+                  "type": "number"
+                },
+                "height": {
+                  "description": "Image height in pixels, must be divisible by 64 (128-2048, default: 1024)",
+                  "type": "number"
+                },
+                "model": {
+                  "description": "Image model to use",
+                  "type": "string"
+                },
+                "negativePrompt": {
+                  "description": "Negative prompt to avoid certain elements (max 3000 chars)",
+                  "type": "string"
+                },
+                "numberResults": {
+                  "description": "Number of images to generate (1-4, default: 1)",
+                  "type": "number"
+                },
+                "prompt": {
+                  "description": "Text description of the image to generate (2-3000 chars)",
+                  "required": true,
+                  "type": "string"
+                },
+                "seed": {
+                  "description": "Random seed for reproducibility",
+                  "type": "number"
+                },
+                "steps": {
+                  "description": "Number of inference steps (1-50)",
+                  "type": "number"
+                },
+                "width": {
+                  "description": "Image width in pixels, must be divisible by 64 (128-2048, default: 1024)",
+                  "type": "number"
+                }
+              },
+              "bodyType": "json",
+              "discoverable": true,
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "images": {
+                "description": "Array of generated image objects",
+                "items": {
+                  "properties": {
+                    "url": {
+                      "description": "CDN URL of the generated image",
+                      "type": "string"
+                    },
+                    "uuid": {
+                      "description": "Unique identifier for the image",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "model": {
+                "description": "Model used for generation",
+                "type": "string"
+              }
+            }
+          },
+          "payTo": "0xEb4DA07Be74b26b2966b3cD07842cADE70E47D53",
+          "resource": "https://api.x-router.ai/v1/images/generate",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:49:03.765Z",
+      "resource": "https://api.x-router.ai/v1/images/generate",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Chat with NanoBrain AI",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "text/event-stream",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xcAF6f4AF9C1DF98530E74A3eCbb88dF077CBBC87",
+          "resource": "https://nanobrain-alpha.vercel.app/api/chat",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:46:13.674Z",
+      "resource": "https://nanobrain-alpha.vercel.app/api/chat",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get current weather for a location",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "location": {
+                  "description": "City name, e.g., 'London'",
+                  "required": true,
+                  "type": "string"
+                },
+                "units": {
+                  "description": "metric, imperial, or kelvin",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xd8bA61a0b0974db0EC8E325C7628470526558E9B",
+          "resource": "https://padelmaps.org/api/x402-tools/weather/current",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:43:49.928Z",
+      "resource": "https://padelmaps.org/api/x402-tools/weather/current",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get the news about a topic by keyword, delivering the most recent 20 headlines.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "100000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "queryParams": {
+                "keyword": {
+                  "description": "The keyword to search for",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "type": "http"
+            },
+            "output": {
+              "items": {
+                "properties": {
+                  "author": {
+                    "type": "string"
+                  },
+                  "feed_categories": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "long_context": {
+                    "type": "string"
+                  },
+                  "sentiment": {
+                    "type": "string"
+                  },
+                  "sentiment_value": {
+                    "type": "number"
+                  },
+                  "short_context": {
+                    "type": "string"
+                  },
+                  "signal": {
+                    "type": "string"
+                  },
+                  "sources": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "timestamp": {
+                    "type": "number"
+                  },
+                  "tokens": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "tweet_url": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "payTo": "0xCa1271E777C209e171826A681855351f4989cd0c",
+          "resource": "https://api.itsgloria.ai/news-by-keyword",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:32:17.682Z",
+      "resource": "https://api.itsgloria.ai/news-by-keyword",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Click the button",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "properties": {},
+              "type": "http"
+            },
+            "output": {
+              "input": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "type": "http"
+              }
+            }
+          },
+          "payTo": "0x5E50d23EC14Ea4436582029a25313e5048e01D10",
+          "resource": "http://ainalyst-api.xyz/click",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:29:49.076Z",
+      "resource": "http://ainalyst-api.xyz/click",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "channel": "crypto-base",
+          "description": "Access to protected resource",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "displayName": "AgentPayWall-402",
+              "method": "GET",
+              "name": "AgentPayWall-402",
+              "type": "http"
+            }
+          },
+          "payTo": "0x66FA4D79cA84016b42352BE33C908Dd812952Ec8",
+          "resource": "https://pay.lnpay.ai/resource",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:28:46.307Z",
+      "resource": "https://pay.lnpay.ai/resource",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Extracts a clean, token-efficient content summary as markdown from a URL. Removes ads, nav, scripts. Much more efficient than raw HTML fetches for LLMs",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "2000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "queryParams": {
+                "includeMediaUrls": {
+                  "description": "If set to true, includes image and video urls.",
+                  "required": false,
+                  "type": "string"
+                },
+                "url": {
+                  "description": "The URL from which to extract the content summary.",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "queryParameters": {
+                  "type": "object"
+                },
+                "results": {
+                  "description": "Extracted content objects with requestUrl, url (final after redirects), and summary (clean markdown)",
+                  "type": "array"
+                },
+                "success": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "payTo": "0xffA9155A0e4B3d8d42351Da226cC1feEe449686f",
+          "resource": "https://minifetch.com/api/v1/x402/extract/url-content",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:25:35.701Z",
+      "metadata": {},
+      "resource": "https://minifetch.com/api/v1/x402/extract/url-content",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "AI-powered GIF search with semantic ranking from Giphy, Tenor, and Klipy",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "50000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
               "headerFields": {
-                "X-Budget": {
-                  "description": "Optional budget amount in USD (e.g., $0.01). If not provided, defaults to $0.001",
-                  "example": "$0.01",
+                "x-payment": {
+                  "description": "Base64-encoded x402 payment proof",
                   "required": false,
                   "type": "string"
                 }
               },
               "method": "GET",
+              "queryParams": {
+                "max_results": {
+                  "description": "Maximum results (default 20)",
+                  "required": false,
+                  "type": "number"
+                },
+                "query": {
+                  "description": "Search query text",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "type": "http"
+            },
+            "output": {
+              "count": {
+                "type": "number"
+              },
+              "query": {
+                "type": "string"
+              },
+              "results": {
+                "type": "array"
+              },
+              "sources": {
+                "type": "array"
+              },
+              "success": {
+                "type": "boolean"
+              }
+            }
+          },
+          "payTo": "0xCD95802A4aBddD75A5750DD2d6935007eF268275",
+          "resource": "https://gifu-server.onrender.com/api/x402/search/gif",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T01:00:52.347Z",
+      "resource": "https://gifu-server.onrender.com/api/x402/search/gif",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "BasePost by basepost.base.eth: The internet used to be fun. Now every article comes with 47 ads, 12 popups, and a newsletter signup that won't take no for an answer. BasePost brings back the good old days: clean pages, good writing, and you pay a few cents for what you actually want to read.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "authorAddress": {
+                  "description": "Ethereum/Base address of the author",
+                  "type": "string"
+                },
+                "authorDisplayName": {
+                  "description": "Author's display name",
+                  "type": "string"
+                },
+                "authorPfpUrl": {
+                  "description": "Author's profile picture URL",
+                  "type": "string"
+                },
+                "authorUsername": {
+                  "description": "Author's username",
+                  "type": "string"
+                },
+                "body": {
+                  "description": "The full article content in markdown format",
+                  "type": "string"
+                },
+                "imageUrl": {
+                  "description": "URL to the article cover image",
+                  "type": "string"
+                },
+                "priceUsd": {
+                  "description": "The price paid to access this article",
+                  "type": "string"
+                },
+                "slug": {
+                  "description": "URL-friendly identifier for the article",
+                  "type": "string"
+                },
+                "teaser": {
+                  "description": "A short preview of the article",
+                  "type": "string"
+                },
+                "title": {
+                  "description": "The article title",
+                  "type": "string"
+                },
+                "uploadedAt": {
+                  "description": "ISO 8601 timestamp when the article was uploaded",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slug",
+                "title",
+                "body",
+                "priceUsd",
+                "authorAddress",
+                "uploadedAt"
+              ],
+              "type": "object"
+            }
+          },
+          "payTo": "0xAc391cE9c37516C1B53168328728f2A153799F6e",
+          "resource": "https://basepost.vercel.app/api/articles/basepost-launches",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:56:55.741Z",
+      "resource": "https://basepost.vercel.app/api/articles/basepost-launches",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
               "type": "http"
             },
             "output": null
           },
-          "payTo": "0x6a1FE26D54ab0d3E1e3168f2e0c0cDa5cC0A0A4A",
-          "resource": "http://acp-x402.virtuals.io/acp-budget",
+          "payTo": "0x38189D98110A395A1366F1c95875f81fD458a6C3",
+          "resource": "http://library.proofivy.com/proofivy",
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T19:59:08.382Z",
-      "resource": "http://acp-x402.virtuals.io/acp-budget",
+      "lastUpdated": "2025-12-19T00:54:43.667Z",
+      "resource": "http://library.proofivy.com/proofivy",
       "type": "http",
       "x402Version": 1
     },
@@ -1547,8 +2233,1247 @@
           "scheme": "exact"
         }
       ],
-      "lastUpdated": "2025-12-18T19:48:46.185Z",
+      "lastUpdated": "2025-12-19T00:49:49.772Z",
       "resource": "https://xluihnzwcmxybtygewvy.supabase.co/functions/v1/url-qr-code-generator",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Search Kalshi prediction markets by keyword with category filtering",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "queryParams": {
+                "category": "string parameter",
+                "limit": "integer parameter",
+                "q": "string parameter"
+              },
+              "type": "http"
+            },
+            "output": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "additionalProperties": false,
+              "properties": {
+                "data": {},
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "data"
+              ],
+              "type": "object"
+            }
+          },
+          "payTo": "0xfbd7b7Ed48146aD9bEfF956212c77cE056815ad0",
+          "resource": "https://polymarketeer.vercel.app/api/x402/kalshi/markets/search",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:46:27.739Z",
+      "resource": "https://polymarketeer.vercel.app/api/x402/kalshi/markets/search",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Create a Browserbase browser session with prepaid time. Returns a WebSocket connection URL for browser automation.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "2000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "body": {
+                "browserConfig": {
+                  "description": "Optional browser configuration",
+                  "properties": {
+                    "region": {
+                      "description": "AWS region for the browser (e.g., 'us-west-2', 'us-east-1')",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "estimatedMinutes": {
+                  "description": "Estimated number of minutes you plan to use the browser session",
+                  "required": true,
+                  "type": "number"
+                }
+              },
+              "discoverable": true,
+              "method": "POST",
+              "queryParams": {},
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "authToken": {
+                  "description": "Authentication token for this session",
+                  "type": "string"
+                },
+                "connectUrl": {
+                  "description": "WebSocket URL to connect to the browser via CDP (Chrome DevTools Protocol)",
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "description": "ISO 8601 timestamp when the session expires",
+                  "type": "string"
+                },
+                "paidMinutes": {
+                  "description": "Number of minutes prepaid for this session",
+                  "type": "number"
+                },
+                "pricing": {
+                  "properties": {
+                    "amountPaid": {
+                      "type": "number"
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "ratePerHour": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "sessionId": {
+                  "description": "Unique identifier for the browser session",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "payTo": "0x8c23D49bB00a98679726600BAF304CBe9067f679",
+          "resource": "https://x402.browserbase.com/browser/session/create",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:42:38.395Z",
+      "resource": "https://x402.browserbase.com/browser/session/create",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "channel": "crypto-base",
+          "description": "Access to protected resource",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "displayName": "AgentPayWall-402",
+              "method": "GET",
+              "name": "AgentPayWall-402",
+              "type": "http"
+            }
+          },
+          "payTo": "0x66FA4D79cA84016b42352BE33C908Dd812952Ec8",
+          "resource": "https://pay.lnpay.ai/res",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:37:28.434Z",
+      "resource": "https://pay.lnpay.ai/res",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Demo X402 premium endpoint (mainnet) - pay $0.01 USDC",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "message": {
+                  "description": "Welcome message for premium users",
+                  "type": "string"
+                },
+                "payment": {
+                  "description": "Payment verification and settlement details",
+                  "properties": {
+                    "amount_paid": {
+                      "description": "Amount paid in atomic units",
+                      "type": "string"
+                    },
+                    "network": {
+                      "description": "Payment network",
+                      "type": "string"
+                    },
+                    "payer": {
+                      "description": "Payer wallet address",
+                      "type": "string"
+                    },
+                    "settled": {
+                      "type": "boolean"
+                    },
+                    "transaction_hash": {
+                      "description": "On-chain transaction hash",
+                      "type": "string"
+                    },
+                    "verified": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "tier": {
+                  "description": "Access tier level",
+                  "enum": [
+                    "premium"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message",
+                "tier",
+                "payment"
+              ],
+              "type": "object"
+            }
+          },
+          "payTo": "0xf80f9479ad1D2601Ee347D55b5b1F6B27071267f",
+          "resource": "https://api-dev.agents.skillfulai.io/api/x402/demo/mainnet/premium",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:34:55.855Z",
+      "resource": "https://api-dev.agents.skillfulai.io/api/x402/demo/mainnet/premium",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Search through stored memories. This method is called ANYTIME the user asks anything.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "query": {
+                  "description": "The search query. This is the query that the user has asked for. Example: 'What did I tell you about the weather last week?' or 'What did I tell you about my friend John?'",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "memories": {
+                  "required": true,
+                  "type": "array"
+                },
+                "query": {
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "memories",
+                "query"
+              ],
+              "type": "object"
+            }
+          },
+          "payTo": "0x0cC2CDC0EB992860d6c2a216b1DC0895fD2DF82F",
+          "resource": "https://staging.toolkit.dev/api/tool/memory/search-memories",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:31:05.646Z",
+      "resource": "https://staging.toolkit.dev/api/tool/memory/search-memories",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "description": "Base GPT wrapper API using x402 payments. Default direct call: model gpt-5-mini, max_output_tokens=2000, fixed price 0.01 USDC for up to 1000 input tokens. For all other settings the price is computed per model as (input_tokens * input_price_per_million + max_output_tokens * output_price_per_million) / 1,000,000, with a minimum of 0.001 USDC and always rounded up to 6 decimals. Optional max_input_tokens lets you cap the input tokens used for pricing; if the message is longer than this cap the server returns an error instead of under-pricing. Optional action=message (or omitting action) performs a direct GPT call with the given message. Optional action=create creates a custom agent with the given message as preprompt for 0.001 USDC (no OpenAI call), stores a base_price_usdc using (max_input_tokens_for_agent or 1000) + preprompt + max_output_tokens, and returns a custom_id. Optional action=list lists up to 100 recent custom agents for the paying wallet for 0.001 USDC without calling OpenAI. Custom agents can be called via POST /base/llm/gpt with custom_id, or POST /base/llm/gpt/{custom_id}. Each custom agent has a fixed price per call based on its stored preprompt, model, max_output_tokens and max_input_tokens; if the runtime message is longer than max_input_tokens the server returns an error. This specific request uses model gpt-5-mini with max_output_tokens=2000. Pricing mode: default. Prepaid price (x402) for this request: 0.010000 USDC.",
+          "extra": {
+            "avatarUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
+            "chainId": 8453,
+            "decimals": 6,
+            "eip712": {
+              "name": "USD Coin",
+              "version": "2"
+            },
+            "iconUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
+            "kind": "llm-gpt",
+            "name": "USD Coin",
+            "pricing": {
+              "amount": 0.01,
+              "currency": "USDC",
+              "defaultAmount": 0.01,
+              "isAgentCall": false,
+              "isCreateAction": false,
+              "maxOutputTokens": 2000,
+              "minAmount": 0.001,
+              "mode": "default",
+              "model": "gpt-5-mini",
+              "network": "Base"
+            },
+            "serviceDescription": "x402Factory Base endpoints for agents (notes, LLMs, TTS, Telegram, coin prices, payments).",
+            "serviceName": "x402Factory",
+            "serviceUrl": "https://x402factory.ai",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "action": {
+                  "description": "Optional action. Use 'message' (or omit action) for a direct GPT call, 'create' to create a custom agent with a preprompt, or 'list' to list your custom agents without calling OpenAI.",
+                  "enum": [
+                    "message",
+                    "create",
+                    "list"
+                  ],
+                  "required": false,
+                  "type": "string"
+                },
+                "custom_id": {
+                  "description": "Optional custom agent ID returned from action=create. When set, the preprompt + model from that agent are used. Can also be provided via URL: /base/llm/gpt/{custom_id}.",
+                  "required": false,
+                  "type": "string"
+                },
+                "max_input_tokens": {
+                  "description": "Optional hard ceiling on input tokens used for pricing. For normal calls this caps the user message tokens. For custom agents this caps the user message tokens on top of the fixed preprompt. If the actual message is longer than this value, the server returns an error instead of under-pricing.",
+                  "required": false,
+                  "type": "number"
+                },
+                "max_output_tokens": {
+                  "description": "Maximum number of output tokens. Default 2000. Higher limits increase the prepaid price because x402 payments are upfront.",
+                  "required": false,
+                  "type": "number"
+                },
+                "message": {
+                  "description": "User message for the LLM. Required for normal GPT calls. For action=create this becomes the preprompt that is stored for the custom agent.",
+                  "required": false,
+                  "type": "string"
+                },
+                "model": {
+                  "description": "Logical model name. One of: gpt-5.1, gpt-5-mini (default), gpt-5-nano, gpt-5-pro. Pricing is per model using per-million token rates.",
+                  "enum": [
+                    "gpt-5.1",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
+                    "gpt-5-pro"
+                  ],
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "action": {
+                "description": "Action performed: 'call' for direct GPT calls, 'call_custom' for custom agents, 'create' for new custom agents, 'list' for listing your custom agents.",
+                "type": "string"
+              },
+              "agents": {
+                "description": "For action=list: up to 100 recent custom agents for the paying wallet. Each entry includes custom_id, model, max_output_tokens, base_price_usdc, max_input_tokens, preprompt_preview (first 250 chars), created_at and updated_at.",
+                "type": "array"
+              },
+              "base_price_usdc": {
+                "description": "For action=create, the stored base price for the agent (max_input_tokens_for_agent + preprompt + max_output_tokens) using the selected model.",
+                "type": "number"
+              },
+              "custom_id": {
+                "description": "Custom agent ID used for this call, if any. For action=create this is the newly created agent ID.",
+                "type": "string"
+              },
+              "estimated_input_tokens": {
+                "description": "Estimated number of input tokens used for pricing. For custom agents this includes both preprompt and the agent's configured max_input_tokens.",
+                "type": "number"
+              },
+              "max_output_tokens": {
+                "description": "Maximum output tokens used for this call (after applying any defaults and limits).",
+                "type": "number"
+              },
+              "model": {
+                "description": "Model used for this call",
+                "type": "string"
+              },
+              "ok": {
+                "description": "True on success",
+                "type": "boolean"
+              },
+              "preprompt": {
+                "description": "For action=create, the stored preprompt text. For custom calls, the preprompt used for the agent.",
+                "type": "string"
+              },
+              "price_usdc": {
+                "description": "Price charged for this call in USDC (6 decimals, rounded up). Minimum is 0.001 USDC. Default direct calls cost 0.01 USDC for up to 1000 input tokens with gpt-5-mini and max_output_tokens=2000.",
+                "type": "number"
+              },
+              "reply": {
+                "description": "For GPT calls, the assistant reply text from OpenAI.",
+                "type": "string"
+              }
+            }
+          },
+          "payTo": "0x402FaCcC3fAeb72351CC2b68C7966faF5f22B0d4",
+          "resource": "https://x402factory.ai/base/llm/gpt",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:29:53.831Z",
+      "resource": "https://x402factory.ai/base/llm/gpt",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Payment for API access",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 3600,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0xCD95802A4aBddD75A5750DD2d6935007eF268275",
+          "resource": "https://studiox402.ivaavimusicproductions.workers.dev/e/ep1",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:26:43.905Z",
+      "resource": "https://studiox402.ivaavimusicproductions.workers.dev/e/ep1",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Generate all images (logo, icon, cover photo, splash image, favicon) from a single prompt. Returns a job ID for async processing.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "imageUrl": {
+                  "description": "Optional reference image URL to guide generation",
+                  "required": false,
+                  "type": "string"
+                },
+                "prompt": {
+                  "description": "Text description to generate all images from",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "jobId": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "payTo": "0x9257cD24721e3c06E9F7655b77C283bCD9652132",
+          "resource": "https://gg402.vercel.app/every-img",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:24:25.554Z",
+      "resource": "https://gg402.vercel.app/every-img",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Access to The Little Secret",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0x89764c3dEd721c29999A237cF935a34e1C8EDf97",
+          "resource": "https://nittarab.dev/secret",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:22:14.111Z",
+      "resource": "https://nittarab.dev/secret",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 180,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "k": {
+                  "required": false,
+                  "type": "integer"
+                },
+                "question": {
+                  "required": true,
+                  "type": "string"
+                },
+                "session_id": {
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "headerFields": {
+                "Content-Type": {
+                  "enum": [
+                    "application/json"
+                  ],
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "method": "POST",
+              "queryParams": {
+                "k": "integer",
+                "question": "string",
+                "session_id": "string"
+              },
+              "type": "http"
+            },
+            "output": {
+              "properties": {
+                "answer": {
+                  "title": "Answer",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "answer"
+              ],
+              "title": "AskResponse",
+              "type": "object"
+            }
+          },
+          "payTo": "0x57280FF3762897B4699C2213faEaed5A47300B82",
+          "resource": "https://x402.bigbug.ai/ask",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:15:21.854Z",
+      "resource": "https://x402.bigbug.ai/ask",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "0.1 USDC on base",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "100000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "image/jpeg",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0x9991A6C50CD5A59c1dD084BbD825238c783A912a",
+          "resource": "https://gateway.grapevine.fyi/x402/cid/bafkreie7xbtpy7flvmlr65se4zv7cprc3rjgfyiufje4rdoxhcuqqhe3q4",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:06:16.019Z",
+      "resource": "https://gateway.grapevine.fyi/x402/cid/bafkreie7xbtpy7flvmlr65se4zv7cprc3rjgfyiufje4rdoxhcuqqhe3q4",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Ask anything. Get Context from S-tier providers > https://app.kirha.com/providers > Payment at the granularity of the data point.",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "100000",
+          "maxTimeoutSeconds": 120,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "query": {
+                  "description": "The search query",
+                  "required": true,
+                  "type": "string"
+                },
+                "verticalId": {
+                  "enum": [
+                    "crypto",
+                    "company",
+                    "insurance"
+                  ],
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "id": {
+                "type": "string"
+              },
+              "planning": {
+                "type": "object"
+              },
+              "raw_data": {
+                "type": "object"
+              },
+              "summary": {
+                "type": "string"
+              }
+            }
+          },
+          "payTo": "0x46c52aA3823488EfD7F7e0dAB066976419292e6e",
+          "resource": "http://x402.kirha.com/search",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-19T00:00:37.884Z",
+      "resource": "http://x402.kirha.com/search",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get all padel clubs in a city",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "city": {
+                  "description": "City name, e.g., 'barcelona'",
+                  "required": true,
+                  "type": "string"
+                },
+                "limit": {
+                  "description": "Max results (default: 50, max: 100)",
+                  "required": false,
+                  "type": "integer"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xd8bA61a0b0974db0EC8E325C7628470526558E9B",
+          "resource": "https://padelmaps.org/api/x402/clubs",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T23:42:25.727Z",
+      "resource": "https://padelmaps.org/api/x402/clubs",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+          "description": "",
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "image/png",
+          "network": "base-sepolia",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0x941f29fddA2CB16649b70D1C28aA5933DBba6295",
+          "resource": "https://x402hackathon.mypinata.cloud/x402/cid/bafybeibflo5qiryeuupzuayowoi5qsillk3bij7yaizld2jvma3ah6cgdi",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T23:36:58.527Z",
+      "metadata": {},
+      "resource": "https://x402hackathon.mypinata.cloud/x402/cid/bafybeibflo5qiryeuupzuayowoi5qsillk3bij7yaizld2jvma3ah6cgdi",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "acp job budget ($0.001)",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "1000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "headerFields": {
+                "X-Budget": {
+                  "description": "Optional budget amount in USD (e.g., $0.01). If not provided, defaults to $0.001",
+                  "example": "$0.01",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "method": "GET",
+              "type": "http"
+            },
+            "output": null
+          },
+          "payTo": "0x6a1FE26D54ab0d3E1e3168f2e0c0cDa5cC0A0A4A",
+          "resource": "http://acp-x402.virtuals.io/acp-budget",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T23:05:46.094Z",
+      "resource": "http://acp-x402.virtuals.io/acp-budget",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "description": "Base → Solana USDC microbridge discovery. Default example uses 1.00 USDC deposited to the Base bridge wallet. Provide a Solana receiver address and an amount (min 0.01 USDC, steps of 0.01) to create a concrete bridge quote. The bridge charges a 2.5% commission; the remainder is delivered as USDC on Solana.",
+          "extra": {
+            "avatarUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
+            "chainId": 8453,
+            "decimals": 6,
+            "eip712": {
+              "name": "USD Coin",
+              "version": "2"
+            },
+            "iconUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
+            "kind": "base-bridge-usdc",
+            "name": "USD Coin",
+            "pricing": {
+              "amount": 1,
+              "currency": "USDC",
+              "defaultDiscoveryAmount": 1,
+              "destNetwork": "Solana",
+              "feePercent": 2.5,
+              "minAmount": 0.01,
+              "mode": "bridge-discovery",
+              "network": "Base",
+              "step": 0.01
+            },
+            "serviceDescription": "x402Factory Base→Solana USDC microbridge for agents. Deposits USDC on Base and delivers USDC on Solana with a small commission.",
+            "serviceName": "x402Factory",
+            "serviceUrl": "https://x402factory.ai",
+            "version": "2"
+          },
+          "maxAmountRequired": "1000000",
+          "maxTimeoutSeconds": 600,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "amount": {
+                  "description": "Amount in USDC to bridge from Base to Solana. Optional; minimum 0.01 USDC, steps of 0.01 USDC. When omitted, defaults to 1.00 USDC.",
+                  "required": false,
+                  "type": "string"
+                },
+                "receiver": {
+                  "description": "Destination Solana wallet address that should receive bridged USDC.",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "action": {
+                "description": "Action performed, always 'bridge_usdc_base_to_solana'.",
+                "type": "string"
+              },
+              "amount_in_usdc": {
+                "description": "USDC amount paid on Base.",
+                "type": "string"
+              },
+              "amount_out_usdc": {
+                "description": "USDC amount delivered on Solana after commission.",
+                "type": "string"
+              },
+              "base_payment_txid": {
+                "description": "Base transaction hash of the bridge payment (x402 settlement).",
+                "type": "string"
+              },
+              "bridge_id": {
+                "description": "Internal bridge id for support and debugging.",
+                "type": "string"
+              },
+              "dest_chain": {
+                "description": "Destination chain name (always 'solana').",
+                "type": "string"
+              },
+              "fee_usdc": {
+                "description": "Bridge commission in USDC.",
+                "type": "string"
+              },
+              "message": {
+                "description": "Human-readable status message.",
+                "type": "string"
+              },
+              "ok": {
+                "description": "True when the bridge completed (sent or refunded).",
+                "type": "boolean"
+              },
+              "payer_wallet": {
+                "description": "Base wallet that paid the bridge x402 payment.",
+                "type": "string"
+              },
+              "receiver_wallet": {
+                "description": "Solana wallet that should receive bridged USDC.",
+                "type": "string"
+              },
+              "refund_txid": {
+                "description": "Base transaction hash of the refund when the bridge failed.",
+                "type": "string"
+              },
+              "sol_txid": {
+                "description": "Solana transaction id of the USDC transfer to the receiver.",
+                "type": "string"
+              },
+              "source_chain": {
+                "description": "Source chain name (always 'base').",
+                "type": "string"
+              },
+              "status": {
+                "description": "Bridge status: 'sent' when Solana transfer succeeded, 'refunded' when Base refund was sent, or 'failed' when both send and refund failed.",
+                "type": "string"
+              }
+            }
+          },
+          "payTo": "0x402B79eCb8C09348739e17eFc14768066De645fe",
+          "resource": "https://x402factory.ai/base/bridge",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T23:04:04.127Z",
+      "resource": "https://x402factory.ai/base/bridge",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get cryptocurrency price and market data",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "currency": {
+                  "description": "Price currency (default: usd)",
+                  "required": false,
+                  "type": "string"
+                },
+                "symbol": {
+                  "description": "Coin ID, e.g., 'bitcoin', 'ethereum'",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xd8bA61a0b0974db0EC8E325C7628470526558E9B",
+          "resource": "https://padelmaps.org/api/x402-tools/crypto/price",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T22:17:05.725Z",
+      "resource": "https://padelmaps.org/api/x402-tools/crypto/price",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get open padel matches in a city",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "city": {
+                  "description": "City name, e.g., 'madrid'",
+                  "required": true,
+                  "type": "string"
+                },
+                "limit": {
+                  "description": "Max results (default: 50, max: 100)",
+                  "required": false,
+                  "type": "integer"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xd8bA61a0b0974db0EC8E325C7628470526558E9B",
+          "resource": "https://padelmaps.org/api/x402/matches",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T22:16:43.979Z",
+      "resource": "https://padelmaps.org/api/x402/matches",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get detailed club information",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "club_id": {
+                  "description": "Club ID, e.g., 1238",
+                  "required": true,
+                  "type": "integer"
+                }
+              },
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xd8bA61a0b0974db0EC8E325C7628470526558E9B",
+          "resource": "https://padelmaps.org/api/x402/club",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T22:16:12.176Z",
+      "resource": "https://padelmaps.org/api/x402/club",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "AI poker decision from ChatGPT, Claude, Grok, or Deepseek",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "50000",
+          "maxTimeoutSeconds": 120,
+          "mimeType": "",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "discoverable": true,
+              "method": "GET",
+              "type": "http"
+            }
+          },
+          "payTo": "0xb1D321629B47DA8886cb2d1F30E377F01C8d2189",
+          "resource": "http://x402-poker-server-production.up.railway.app/api/decision",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T22:12:39.977Z",
+      "resource": "http://x402-poker-server-production.up.railway.app/api/decision",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Get list of countries with padel clubs",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "10000",
+          "maxTimeoutSeconds": 60,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {},
+              "bodyType": "json",
+              "method": "POST",
+              "type": "http"
+            }
+          },
+          "payTo": "0xd8bA61a0b0974db0EC8E325C7628470526558E9B",
+          "resource": "https://padelmaps.org/api/x402/countries",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T22:11:22.44Z",
+      "resource": "https://padelmaps.org/api/x402/countries",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Payment for Ask Surf chat ($0.20 USDC)",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "200000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "user_query": {
+                  "description": "Single user query",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "headerFields": {
+                "X-PAYMENT": {
+                  "description": "Base64-encoded JSON PaymentPayload; automatically filled by x402scan",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "content": "string",
+              "model": "string",
+              "raw_response": "object|null",
+              "reasoning": "string|null"
+            }
+          },
+          "payTo": "0x4e2ef8df36a74b168333e92686018c3b3fb2e3e7",
+          "resource": "https://x402.asksurf.ai/x402/tools/ask_surf_chat",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T20:48:51.998Z",
+      "resource": "https://x402.asksurf.ai/x402/tools/ask_surf_chat",
+      "type": "http",
+      "x402Version": 1
+    },
+    {
+      "accepts": [
+        {
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "description": "Payment for Ask Surf chat ($0.20 USDC)",
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          },
+          "maxAmountRequired": "200000",
+          "maxTimeoutSeconds": 300,
+          "mimeType": "application/json",
+          "network": "base",
+          "outputSchema": {
+            "input": {
+              "bodyFields": {
+                "user_query": {
+                  "description": "Single user query",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "bodyType": "json",
+              "headerFields": {
+                "X-PAYMENT": {
+                  "description": "Base64-encoded JSON PaymentPayload; automatically filled by x402scan",
+                  "required": false,
+                  "type": "string"
+                }
+              },
+              "method": "POST",
+              "type": "http"
+            },
+            "output": {
+              "content": "string",
+              "model": "string",
+              "raw_response": "object|null",
+              "reasoning": "string|null"
+            }
+          },
+          "payTo": "0x4e2ef8df36a74b168333e92686018c3b3fb2e3e7",
+          "resource": "https://ask-surf-x402-production.up.railway.app/x402/tools/ask_surf_chat",
+          "scheme": "exact"
+        }
+      ],
+      "lastUpdated": "2025-12-18T20:47:05.613Z",
+      "resource": "https://ask-surf-x402-production.up.railway.app/x402/tools/ask_surf_chat",
       "type": "http",
       "x402Version": 1
     },
@@ -1749,739 +3674,6 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Search Kalshi prediction markets by keyword with category filtering",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "queryParams": {
-                "category": "string parameter",
-                "limit": "integer parameter",
-                "q": "string parameter"
-              },
-              "type": "http"
-            },
-            "output": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "additionalProperties": false,
-              "properties": {
-                "data": {},
-                "error": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "data"
-              ],
-              "type": "object"
-            }
-          },
-          "payTo": "0xfbd7b7Ed48146aD9bEfF956212c77cE056815ad0",
-          "resource": "https://polymarketeer.vercel.app/api/x402/kalshi/markets/search",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:26:19.851Z",
-      "resource": "https://polymarketeer.vercel.app/api/x402/kalshi/markets/search",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Create image using Flux Pro AI model",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "20000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0xF338bDD9ec443335B1c33aD3bb21A421A36f97eA",
-          "resource": "https://www.genbase.fun/api/image/create",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:25:37.971Z",
-      "resource": "https://www.genbase.fun/api/image/create",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "channel": "crypto-base",
-          "description": "Access to protected resource",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "displayName": "AgentPayWall-402",
-              "method": "GET",
-              "name": "AgentPayWall-402",
-              "type": "http"
-            }
-          },
-          "payTo": "0x66FA4D79cA84016b42352BE33C908Dd812952Ec8",
-          "resource": "https://pay.lnpay.ai/res",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:22:44.775Z",
-      "resource": "https://pay.lnpay.ai/res",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Search through stored memories. This method is called ANYTIME the user asks anything.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "query": {
-                  "description": "The search query. This is the query that the user has asked for. Example: 'What did I tell you about the weather last week?' or 'What did I tell you about my friend John?'",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "memories": {
-                  "required": true,
-                  "type": "array"
-                },
-                "query": {
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "required": [
-                "memories",
-                "query"
-              ],
-              "type": "object"
-            }
-          },
-          "payTo": "0x0cC2CDC0EB992860d6c2a216b1DC0895fD2DF82F",
-          "resource": "https://staging.toolkit.dev/api/tool/memory/search-memories",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:21:22.628Z",
-      "resource": "https://staging.toolkit.dev/api/tool/memory/search-memories",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Generate all images (logo, icon, cover photo, splash image, favicon) from a single prompt. Returns a job ID for async processing.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "imageUrl": {
-                  "description": "Optional reference image URL to guide generation",
-                  "required": false,
-                  "type": "string"
-                },
-                "prompt": {
-                  "description": "Text description to generate all images from",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "jobId": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0x9257cD24721e3c06E9F7655b77C283bCD9652132",
-          "resource": "https://gg402.vercel.app/every-img",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:18:51.743Z",
-      "resource": "https://gg402.vercel.app/every-img",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Access to The Little Secret",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            }
-          },
-          "payTo": "0x89764c3dEd721c29999A237cF935a34e1C8EDf97",
-          "resource": "https://nittarab.dev/secret",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:18:10.08Z",
-      "resource": "https://nittarab.dev/secret",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "channel": "crypto-base",
-          "description": "Access to protected resource",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "displayName": "AgentPayWall-402",
-              "method": "GET",
-              "name": "AgentPayWall-402",
-              "type": "http"
-            }
-          },
-          "payTo": "0x66FA4D79cA84016b42352BE33C908Dd812952Ec8",
-          "resource": "https://pay.lnpay.ai/resource",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:15:44.191Z",
-      "resource": "https://pay.lnpay.ai/resource",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "channel": "crypto-base",
-          "description": "Access to protected resource",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "displayName": "AgentPayWall-402",
-              "method": "GET",
-              "name": "AgentPayWall-402",
-              "type": "http"
-            }
-          },
-          "payTo": "0x66FA4D79cA84016b42352BE33C908Dd812952Ec8",
-          "resource": "https://agent.paywall402.com/resource",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:13:10.174Z",
-      "resource": "https://agent.paywall402.com/resource",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "List Polymarket events with filtering by status, category, and volume",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "queryParams": {
-                "active": "string parameter",
-                "ascending": "string parameter",
-                "closed": "string parameter",
-                "limit": "integer parameter",
-                "offset": "integer parameter",
-                "order": "string parameter",
-                "tag_id": "string parameter"
-              },
-              "type": "http"
-            },
-            "output": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "additionalProperties": false,
-              "properties": {
-                "data": {},
-                "error": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "data"
-              ],
-              "type": "object"
-            }
-          },
-          "payTo": "0xfbd7b7Ed48146aD9bEfF956212c77cE056815ad0",
-          "resource": "https://polymarketeer.vercel.app/api/x402/polymarket/events",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:06:42.474Z",
-      "resource": "https://polymarketeer.vercel.app/api/x402/polymarket/events",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "View the roadmap",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "method": "GET",
-              "type": "http"
-            },
-            "output": {
-              "items": {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "title": {
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0x70DA5f2A851FB936eFF8207f2733b0914cC44B7D",
-          "resource": "https://x721.dev/roadmap",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:05:30.158Z",
-      "resource": "https://x721.dev/roadmap",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "channel": "crypto-base",
-          "description": "Social media reputation analysis from Twitter/X and community feedback with sentiment scoring. Detect fake engagement patterns and measure trust indicators for reputation-based decisions. Price: $0.01 USDC",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "url": {
-                  "description": "The URL of the x402 server to analyze social presence (e.g., https://mesh.heurist.xyz). If unsure what to input, first call get_available_resources to discover valid servers.",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "headerFields": {
-                "X-PAYMENT": {
-                  "description": "Base64-encoded JSON PaymentPayload; automatically filled by x402scan",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "last_validated": "string|null",
-              "result_data": "object|null",
-              "server_name": "string",
-              "social_sentiment_score": "number|null",
-              "status": {
-                "type": "string"
-              },
-              "url": "string"
-            }
-          },
-          "payTo": "0x0495d60c927B97d67D5018C6AA65C9b2bebaeED9",
-          "resource": "https://x402-secure-api.t54.ai/x402/tools/get_social_trust",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:04:59.293Z",
-      "resource": "https://x402-secure-api.t54.ai/x402/tools/get_social_trust",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "AI-powered GIF search with semantic ranking from Giphy, Tenor, and Klipy",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "50000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "headerFields": {
-                "x-payment": {
-                  "description": "Base64-encoded x402 payment proof",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "method": "GET",
-              "queryParams": {
-                "max_results": {
-                  "description": "Maximum results (default 20)",
-                  "required": false,
-                  "type": "number"
-                },
-                "query": {
-                  "description": "Search query text",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "type": "http"
-            },
-            "output": {
-              "count": {
-                "type": "number"
-              },
-              "query": {
-                "type": "string"
-              },
-              "results": {
-                "type": "array"
-              },
-              "sources": {
-                "type": "array"
-              },
-              "success": {
-                "type": "boolean"
-              }
-            }
-          },
-          "payTo": "0xCD95802A4aBddD75A5750DD2d6935007eF268275",
-          "resource": "https://gifu-server.onrender.com/api/x402/search/gif",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:04:08.123Z",
-      "resource": "https://gifu-server.onrender.com/api/x402/search/gif",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "BasePost by basepost.base.eth: The internet used to be fun. Now every article comes with 47 ads, 12 popups, and a newsletter signup that won't take no for an answer. BasePost brings back the good old days: clean pages, good writing, and you pay a few cents for what you actually want to read.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "authorAddress": {
-                  "description": "Ethereum/Base address of the author",
-                  "type": "string"
-                },
-                "authorDisplayName": {
-                  "description": "Author's display name",
-                  "type": "string"
-                },
-                "authorPfpUrl": {
-                  "description": "Author's profile picture URL",
-                  "type": "string"
-                },
-                "authorUsername": {
-                  "description": "Author's username",
-                  "type": "string"
-                },
-                "body": {
-                  "description": "The full article content in markdown format",
-                  "type": "string"
-                },
-                "imageUrl": {
-                  "description": "URL to the article cover image",
-                  "type": "string"
-                },
-                "priceUsd": {
-                  "description": "The price paid to access this article",
-                  "type": "string"
-                },
-                "slug": {
-                  "description": "URL-friendly identifier for the article",
-                  "type": "string"
-                },
-                "teaser": {
-                  "description": "A short preview of the article",
-                  "type": "string"
-                },
-                "title": {
-                  "description": "The article title",
-                  "type": "string"
-                },
-                "uploadedAt": {
-                  "description": "ISO 8601 timestamp when the article was uploaded",
-                  "type": "string"
-                }
-              },
-              "required": [
-                "slug",
-                "title",
-                "body",
-                "priceUsd",
-                "authorAddress",
-                "uploadedAt"
-              ],
-              "type": "object"
-            }
-          },
-          "payTo": "0xAc391cE9c37516C1B53168328728f2A153799F6e",
-          "resource": "https://basepost.vercel.app/api/articles/basepost-launches",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:03:19.611Z",
-      "resource": "https://basepost.vercel.app/api/articles/basepost-launches",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            },
-            "output": null
-          },
-          "payTo": "0x38189D98110A395A1366F1c95875f81fD458a6C3",
-          "resource": "http://library.proofivy.com/proofivy",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T19:02:47.898Z",
-      "resource": "http://library.proofivy.com/proofivy",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Create a Browserbase browser session with prepaid time. Returns a WebSocket connection URL for browser automation.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "2000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "body": {
-                "browserConfig": {
-                  "description": "Optional browser configuration",
-                  "properties": {
-                    "region": {
-                      "description": "AWS region for the browser (e.g., 'us-west-2', 'us-east-1')",
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
-                },
-                "estimatedMinutes": {
-                  "description": "Estimated number of minutes you plan to use the browser session",
-                  "required": true,
-                  "type": "number"
-                }
-              },
-              "discoverable": true,
-              "method": "POST",
-              "queryParams": {},
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "authToken": {
-                  "description": "Authentication token for this session",
-                  "type": "string"
-                },
-                "connectUrl": {
-                  "description": "WebSocket URL to connect to the browser via CDP (Chrome DevTools Protocol)",
-                  "type": "string"
-                },
-                "expiresAt": {
-                  "description": "ISO 8601 timestamp when the session expires",
-                  "type": "string"
-                },
-                "paidMinutes": {
-                  "description": "Number of minutes prepaid for this session",
-                  "type": "number"
-                },
-                "pricing": {
-                  "properties": {
-                    "amountPaid": {
-                      "type": "number"
-                    },
-                    "currency": {
-                      "type": "string"
-                    },
-                    "ratePerHour": {
-                      "type": "number"
-                    }
-                  },
-                  "type": "object"
-                },
-                "sessionId": {
-                  "description": "Unique identifier for the browser session",
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0xB68E7e937d04fCf9600251fA358e32a142D7e837",
-          "resource": "https://x402.browserbase.com/browser/session/create",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T18:56:22.587Z",
-      "resource": "https://x402.browserbase.com/browser/session/create",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "channel": "crypto-base",
           "description": "Browse searchable directory of x402 servers with pagination, filtering, and sorting. Discover services, check validation status, and build server catalogs for integration. Price: $0.01 USDC per page",
           "extra": {
@@ -2589,257 +3781,6 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Payment for API access",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 3600,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0xCD95802A4aBddD75A5750DD2d6935007eF268275",
-          "resource": "https://studiox402.ivaavimusicproductions.workers.dev/e/ep1",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T18:52:10.613Z",
-      "resource": "https://studiox402.ivaavimusicproductions.workers.dev/e/ep1",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "amount": "10000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxTimeoutSeconds": 90,
-          "network": "eip155:8453",
-          "payTo": "0xC231db8a696d922f82e32Ed2BBdd492105E7db41",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T17:00:43.871Z",
-      "resource": "https://nacian.finance/api/x402/pools/top-pools-by-tvl",
-      "type": "http",
-      "x402Version": 2
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Click the button",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "properties": {},
-              "type": "http"
-            },
-            "output": {
-              "input": {
-                "properties": {
-                  "message": {
-                    "type": "string"
-                  }
-                },
-                "type": "http"
-              }
-            }
-          },
-          "payTo": "0x5E50d23EC14Ea4436582029a25313e5048e01D10",
-          "resource": "http://ainalyst-api.xyz/click",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T16:44:32.775Z",
-      "resource": "http://ainalyst-api.xyz/click",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "0.1 USDC on base",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "100000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "image/jpeg",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            }
-          },
-          "payTo": "0x9991A6C50CD5A59c1dD084BbD825238c783A912a",
-          "resource": "https://gateway.grapevine.fyi/x402/cid/bafkreie7xbtpy7flvmlr65se4zv7cprc3rjgfyiufje4rdoxhcuqqhe3q4",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T16:36:44.426Z",
-      "resource": "https://gateway.grapevine.fyi/x402/cid/bafkreie7xbtpy7flvmlr65se4zv7cprc3rjgfyiufje4rdoxhcuqqhe3q4",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 180,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "k": {
-                  "required": false,
-                  "type": "integer"
-                },
-                "question": {
-                  "required": true,
-                  "type": "string"
-                },
-                "session_id": {
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "headerFields": {
-                "Content-Type": {
-                  "enum": [
-                    "application/json"
-                  ],
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "method": "POST",
-              "queryParams": {
-                "k": "integer",
-                "question": "string",
-                "session_id": "string"
-              },
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "answer": {
-                  "title": "Answer",
-                  "type": "string"
-                }
-              },
-              "required": [
-                "answer"
-              ],
-              "title": "AskResponse",
-              "type": "object"
-            }
-          },
-          "payTo": "0x57280FF3762897B4699C2213faEaed5A47300B82",
-          "resource": "https://x402.bigbug.ai/ask",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T16:33:27.523Z",
-      "resource": "https://x402.bigbug.ai/ask",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Ask anything. Get Context from S-tier providers > https://app.kirha.com/providers > Payment at the granularity of the data point.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "100000",
-          "maxTimeoutSeconds": 120,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "query": {
-                  "description": "The search query",
-                  "required": true,
-                  "type": "string"
-                },
-                "verticalId": {
-                  "enum": [
-                    "crypto",
-                    "company",
-                    "insurance"
-                  ],
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "id": {
-                "type": "string"
-              },
-              "planning": {
-                "type": "object"
-              },
-              "raw_data": {
-                "type": "object"
-              },
-              "summary": {
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0x46c52aA3823488EfD7F7e0dAB066976419292e6e",
-          "resource": "http://x402.kirha.com/search",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T16:00:31.936Z",
-      "resource": "http://x402.kirha.com/search",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "description": "Simple message - test X402 payments",
           "extra": {
             "name": "USD Coin",
@@ -2920,142 +3861,6 @@
       ],
       "lastUpdated": "2025-12-18T15:41:23.894Z",
       "resource": "https://minifetch.com/api/v1/x402/extract/url-metadata",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Purchase and start an interactive story script",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "300000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "text/plain",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "pathParams": {
-                "id": {
-                  "description": "Script ID",
-                  "required": true,
-                  "type": "number"
-                }
-              },
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "instructions": {
-                  "description": "Instructions to start the story",
-                  "type": "string"
-                },
-                "script": {
-                  "description": "The full script content",
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0x3e9F7F14f88FB23911396705d51326497244Ca7b",
-          "resource": "http://x402.storyverselab.ai/script/2/purchase",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T14:59:25.027Z",
-      "metadata": {},
-      "resource": "http://x402.storyverselab.ai/script/2/purchase",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-          "description": "acp job budget ($0.001)",
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          },
-          "maxAmountRequired": "1000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base-sepolia",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "headerFields": {
-                "X-Budget": {
-                  "description": "Optional budget amount in USD (e.g., $0.01). If not provided, defaults to $0.001",
-                  "example": "$0.01",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "method": "GET",
-              "type": "http"
-            },
-            "output": null
-          },
-          "payTo": "0x8Db6B1c839Fc8f6bd35777E194677B67b4D51928",
-          "resource": "http://dev-acp-x402.virtuals.io/acp-budget",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T14:49:58.814Z",
-      "resource": "http://dev-acp-x402.virtuals.io/acp-budget",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Purchase 1000 Gazette API credits for regulatory signals from SEC, Fed, CFTC, OCC, FDIC, FINRA, CFPB, Treasury. Returns API key for $0.01/request signal access.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "body_fields": {
-                "wallet_address": {
-                  "description": "Optional wallet address (auto-detected from x402 payment if not provided)",
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "body_type": "json",
-              "discoverable": true,
-              "header_fields": null,
-              "method": "POST",
-              "query_params": null,
-              "type": "http"
-            },
-            "output": {
-              "api_key": "string",
-              "balance": "integer",
-              "credits_added": "integer",
-              "status": "string"
-            }
-          },
-          "payTo": "0x2e77bd054327568024ec8e0633406cbe2ce02ddd",
-          "resource": "https://api.gazette.bot/credits",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T14:42:43.772Z",
-      "resource": "https://api.gazette.bot/credits",
       "type": "http",
       "x402Version": 1
     },
@@ -3213,57 +4018,6 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Purchase and start an interactive story script",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "300000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "text/plain",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "pathParams": {
-                "id": {
-                  "description": "Script ID",
-                  "required": true,
-                  "type": "number"
-                }
-              },
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "instructions": {
-                  "description": "Instructions to start the story",
-                  "type": "string"
-                },
-                "script": {
-                  "description": "The full script content",
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0x3e9F7F14f88FB23911396705d51326497244Ca7b",
-          "resource": "http://x402.storyverselab.ai/script/1/purchase",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T12:33:54.878Z",
-      "metadata": {},
-      "resource": "http://x402.storyverselab.ai/script/1/purchase",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "description": "Top up account balance with crypto payment",
           "extra": {
             "name": "USD Coin",
@@ -3303,96 +4057,6 @@
       ],
       "lastUpdated": "2025-12-18T10:46:24.777Z",
       "resource": "http://api.compute3.ai/api/x402/top_up",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Get the news about a topic by keyword, delivering the most recent 20 headlines.",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "100000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "queryParams": {
-                "keyword": {
-                  "description": "The keyword to search for",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "type": "http"
-            },
-            "output": {
-              "items": {
-                "properties": {
-                  "author": {
-                    "type": "string"
-                  },
-                  "feed_categories": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "id": {
-                    "type": "string"
-                  },
-                  "long_context": {
-                    "type": "string"
-                  },
-                  "sentiment": {
-                    "type": "string"
-                  },
-                  "sentiment_value": {
-                    "type": "number"
-                  },
-                  "short_context": {
-                    "type": "string"
-                  },
-                  "signal": {
-                    "type": "string"
-                  },
-                  "sources": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "timestamp": {
-                    "type": "number"
-                  },
-                  "tokens": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "tweet_url": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              },
-              "type": "array"
-            }
-          },
-          "payTo": "0xCa1271E777C209e171826A681855351f4989cd0c",
-          "resource": "https://api.itsgloria.ai/news-by-keyword",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-18T10:41:55.69Z",
-      "resource": "https://api.itsgloria.ai/news-by-keyword",
       "type": "http",
       "x402Version": 1
     },
@@ -3589,36 +4253,6 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Chat with NanoBrain AI",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "text/event-stream",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0xcAF6f4AF9C1DF98530E74A3eCbb88dF077CBBC87",
-          "resource": "https://nanobrain-alpha.vercel.app/api/chat",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-17T17:20:12.03Z",
-      "resource": "https://nanobrain-alpha.vercel.app/api/chat",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "description": "Search for a Twitter account with both mention search and account statistics. This tool provides engagement metrics, follower growth, and mentions by smart users. It does not contain all tweets, but only those of influential users. It also identifies the topics and cryptocurrencies they frequently discuss. Data comes from ELFA API and can analyze several weeks of historical activity. MANDATORY: If you need to provide info about this tool, you must mention that this tool is made by Heurist",
           "extra": {
             "name": "USD Coin",
@@ -3806,85 +4440,6 @@
       ],
       "lastUpdated": "2025-12-17T15:12:20.195Z",
       "resource": "https://www.book-bot.app/api/x402/tools/get-download-link",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Demo X402 premium endpoint (mainnet) - pay $0.01 USDC",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "message": {
-                  "description": "Welcome message for premium users",
-                  "type": "string"
-                },
-                "payment": {
-                  "description": "Payment verification and settlement details",
-                  "properties": {
-                    "amount_paid": {
-                      "description": "Amount paid in atomic units",
-                      "type": "string"
-                    },
-                    "network": {
-                      "description": "Payment network",
-                      "type": "string"
-                    },
-                    "payer": {
-                      "description": "Payer wallet address",
-                      "type": "string"
-                    },
-                    "settled": {
-                      "type": "boolean"
-                    },
-                    "transaction_hash": {
-                      "description": "On-chain transaction hash",
-                      "type": "string"
-                    },
-                    "verified": {
-                      "type": "boolean"
-                    }
-                  },
-                  "type": "object"
-                },
-                "tier": {
-                  "description": "Access tier level",
-                  "enum": [
-                    "premium"
-                  ],
-                  "type": "string"
-                }
-              },
-              "required": [
-                "message",
-                "tier",
-                "payment"
-              ],
-              "type": "object"
-            }
-          },
-          "payTo": "0xf80f9479ad1D2601Ee347D55b5b1F6B27071267f",
-          "resource": "https://api-dev.agents.skillfulai.io/api/x402/demo/mainnet/premium",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-17T15:09:20.172Z",
-      "resource": "https://api-dev.agents.skillfulai.io/api/x402/demo/mainnet/premium",
       "type": "http",
       "x402Version": 1
     },
@@ -4348,132 +4903,6 @@
       "accepts": [
         {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Create video using Sora 2 AI model",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "200000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0xF338bDD9ec443335B1c33aD3bb21A421A36f97eA",
-          "resource": "https://www.genbase.fun/api/video/create-sora2",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-17T11:01:27.704Z",
-      "resource": "https://www.genbase.fun/api/video/create-sora2",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Get your daily horoscope",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 300,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "queryParams": {
-                "date": "Date in format YYYY-MM-DD or 'today' (optional, defaults to today)",
-                "sign": "Zodiac sign (options: aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces)"
-              },
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "data": {
-                  "type": "string"
-                },
-                "success": {
-                  "type": "boolean"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0xbAd1Aa224bFe4fEb460E12b2553DcDf98a7098d0",
-          "resource": "https://x402-tools.vercel.app/api/horoscope",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-17T10:53:07.883Z",
-      "resource": "https://x402-tools.vercel.app/api/horoscope",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Purchase and start an interactive story script",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "300000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "text/plain",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "pathParams": {
-                "id": {
-                  "description": "Script ID",
-                  "required": true,
-                  "type": "number"
-                }
-              },
-              "type": "http"
-            },
-            "output": {
-              "properties": {
-                "instructions": {
-                  "description": "Instructions to start the story",
-                  "type": "string"
-                },
-                "script": {
-                  "description": "The full script content",
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            }
-          },
-          "payTo": "0x3e9F7F14f88FB23911396705d51326497244Ca7b",
-          "resource": "http://x402.storyverselab.ai/script/3/purchase",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-17T10:43:32.857Z",
-      "metadata": {},
-      "resource": "http://x402.storyverselab.ai/script/3/purchase",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "description": "Hacker News Analyst: I am a Hacker News Analyst. I specialize in analyzing tech discussions on Hacker News, filtering noise, and distilling insights into clear blog posts. My goal is to help readers quickly grasp the community's collective wisdom.\nAgent Page https://nation.fun/agent/d4aabo5rifbs73aflqfg",
           "extra": {
             "name": "USD Coin",
@@ -4801,37 +5230,6 @@
     {
       "accepts": [
         {
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxTimeoutSeconds": 300,
-          "network": "eip155:8453",
-          "payTo": "0xC231db8a696d922f82e32Ed2BBdd492105E7db41",
-          "scheme": "exact"
-        },
-        {
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "extra": {
-            "feePayer": "L54zkaPQFeTn1UsEqieEXBqWrPShiaZEPD7mS5WXfQg"
-          },
-          "maxTimeoutSeconds": 300,
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "payTo": "2JssAzBLCxUsYCjrDWh8LBtXhV27JQEg8KZ9JtWccLBU",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-16T17:22:08.178Z",
-      "resource": "https://nacian.finance/api/x402/pools/top-pools-by-apr",
-      "type": "http",
-      "x402Version": 2
-    },
-    {
-      "accepts": [
-        {
           "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "description": "Returns gated content",
           "extra": {
@@ -4968,133 +5366,6 @@
       ],
       "lastUpdated": "2025-12-16T04:45:03.84Z",
       "resource": "https://nation.service.crestal.network/x/d4kid6o1hmds738mtlsg",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
-          "description": "Base → Solana USDC microbridge discovery. Default example uses 1.00 USDC deposited to the Base bridge wallet. Provide a Solana receiver address and an amount (min 0.01 USDC, steps of 0.01) to create a concrete bridge quote. The bridge charges a 2.5% commission; the remainder is delivered as USDC on Solana.",
-          "extra": {
-            "avatarUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
-            "chainId": 8453,
-            "decimals": 6,
-            "eip712": {
-              "name": "USD Coin",
-              "version": "2"
-            },
-            "iconUrl": "https://x402factory.ai/x402factoryfavoicon.jpg",
-            "kind": "base-bridge-usdc",
-            "name": "USD Coin",
-            "pricing": {
-              "amount": 1,
-              "currency": "USDC",
-              "defaultDiscoveryAmount": 1,
-              "destNetwork": "Solana",
-              "feePercent": 2.5,
-              "minAmount": 0.01,
-              "mode": "bridge-discovery",
-              "network": "Base",
-              "step": 0.01
-            },
-            "serviceDescription": "x402Factory Base→Solana USDC microbridge for agents. Deposits USDC on Base and delivers USDC on Solana with a small commission.",
-            "serviceName": "x402Factory",
-            "serviceUrl": "https://x402factory.ai",
-            "version": "2"
-          },
-          "maxAmountRequired": "1000000",
-          "maxTimeoutSeconds": 600,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "amount": {
-                  "description": "Amount in USDC to bridge from Base to Solana. Optional; minimum 0.01 USDC, steps of 0.01 USDC. When omitted, defaults to 1.00 USDC.",
-                  "required": false,
-                  "type": "string"
-                },
-                "receiver": {
-                  "description": "Destination Solana wallet address that should receive bridged USDC.",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "bodyType": "json",
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "action": {
-                "description": "Action performed, always 'bridge_usdc_base_to_solana'.",
-                "type": "string"
-              },
-              "amount_in_usdc": {
-                "description": "USDC amount paid on Base.",
-                "type": "string"
-              },
-              "amount_out_usdc": {
-                "description": "USDC amount delivered on Solana after commission.",
-                "type": "string"
-              },
-              "base_payment_txid": {
-                "description": "Base transaction hash of the bridge payment (x402 settlement).",
-                "type": "string"
-              },
-              "bridge_id": {
-                "description": "Internal bridge id for support and debugging.",
-                "type": "string"
-              },
-              "dest_chain": {
-                "description": "Destination chain name (always 'solana').",
-                "type": "string"
-              },
-              "fee_usdc": {
-                "description": "Bridge commission in USDC.",
-                "type": "string"
-              },
-              "message": {
-                "description": "Human-readable status message.",
-                "type": "string"
-              },
-              "ok": {
-                "description": "True when the bridge completed (sent or refunded).",
-                "type": "boolean"
-              },
-              "payer_wallet": {
-                "description": "Base wallet that paid the bridge x402 payment.",
-                "type": "string"
-              },
-              "receiver_wallet": {
-                "description": "Solana wallet that should receive bridged USDC.",
-                "type": "string"
-              },
-              "refund_txid": {
-                "description": "Base transaction hash of the refund when the bridge failed.",
-                "type": "string"
-              },
-              "sol_txid": {
-                "description": "Solana transaction id of the USDC transfer to the receiver.",
-                "type": "string"
-              },
-              "source_chain": {
-                "description": "Source chain name (always 'base').",
-                "type": "string"
-              },
-              "status": {
-                "description": "Bridge status: 'sent' when Solana transfer succeeded, 'refunded' when Base refund was sent, or 'failed' when both send and refund failed.",
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0x402B79eCb8C09348739e17eFc14768066De645fe",
-          "resource": "https://x402factory.ai/base/bridge",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-16T04:19:06.158Z",
-      "resource": "https://x402factory.ai/base/bridge",
       "type": "http",
       "x402Version": 1
     },
@@ -38529,274 +38800,10 @@
       "resource": "https://api-dev.intra-tls2.dctx.link/x402/swarm/qrn:swarm:68f9c92d92d9c54601867e42",
       "type": "http",
       "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Comprehensive risk analysis: VaR, Sharpe, drawdown",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "1000000",
-          "maxTimeoutSeconds": 150,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0xa4bBE37f9A6Ae2dc36a607B91eB148C0ae163C91",
-          "resource": "https://b9c7a16b-b90f-4d3c-b73c-bb8d49f9a8fd-00-2zmwe913s9fbf.picard.replit.dev/x402/risk-metrics",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.764Z",
-      "resource": "https://b9c7a16b-b90f-4d3c-b73c-bb8d49f9a8fd-00-2zmwe913s9fbf.picard.replit.dev/x402/risk-metrics",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-          "description": "0.01 USDC on base-sepolia",
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/octet-stream",
-          "network": "base-sepolia",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            }
-          },
-          "payTo": "0xbc03df2D9F44Cc552EbbFF39860f2CC4fC751d0E",
-          "resource": "https://grapevine.dev-mypinata.cloud/x402/cid/bafkreiebtl6u5epns275umcmgbxnyl245xpbzoamtsfxonmgkdr24w276u",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.758Z",
-      "resource": "https://grapevine.dev-mypinata.cloud/x402/cid/bafkreiebtl6u5epns275umcmgbxnyl245xpbzoamtsfxonmgkdr24w276u",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "SPX6900 - GIGA- CRYPTO | Powered by Questflow",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "1000000",
-          "maxTimeoutSeconds": 1200,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "input": {
-                  "description": "Your message to the agent",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "response": {
-                "description": "Response from the agent",
-                "required": true,
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0xe6E8996b7e3107aD3a1946F1e0A58A4d360be7E9",
-          "resource": "https://api.questflow.ai/x402/swarm/qrn:swarm:690085965771d0b4621c0fca",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.746Z",
-      "resource": "https://api.questflow.ai/x402/swarm/qrn:swarm:690085965771d0b4621c0fca",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Access to Do and Coffee premium article content",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "10000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "text/html",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "GET",
-              "type": "http"
-            },
-            "output": {
-              "description": "Rendered HTML for the requested article.",
-              "mimeType": "text/html"
-            }
-          },
-          "payTo": "0x3360A26Aa5FC7c85D48168E9e9b40613F43C9E21",
-          "resource": "https://do-and-coffee.com/blog/article/revolutionizing-remittance-money-transfers-how-w",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.741Z",
-      "resource": "https://do-and-coffee.com/blog/article/revolutionizing-remittance-money-transfers-how-w",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "AI-powered bias recommendation based on market conditions",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "600000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            },
-            "output": null
-          },
-          "payTo": "0xC1A2f762F67aF72FD05e79afa23F8358A4d7dbaF",
-          "resource": "https://evplus-funding-server.onrender.com/api/x402/bias/recommend",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.735Z",
-      "resource": "https://evplus-funding-server.onrender.com/api/x402/bias/recommend",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Discover GitHub's hottest repositories and trending projects with AI-powered analysis. Get instant insights on rising stars, popular tools, and emerging tech trends delivered straight to your inbox. | Powered by Questflow",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "500000",
-          "maxTimeoutSeconds": 1200,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "input": {
-                  "description": "Your message to the agent",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            },
-            "output": {
-              "response": {
-                "description": "Response from the agent",
-                "required": true,
-                "type": "string"
-              }
-            }
-          },
-          "payTo": "0x8624BEB42bA313Ea9632A3074384C3D9D1256590",
-          "resource": "https://api.questflow.ai/x402/swarm/qrn:swarm:68cea3f2d6eaf7a59021661b",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.73Z",
-      "resource": "https://api.questflow.ai/x402/swarm/qrn:swarm:68cea3f2d6eaf7a59021661b",
-      "type": "http",
-      "x402Version": 1
-    },
-    {
-      "accepts": [
-        {
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "description": "Get trending prediction market events from Polymarket with volume and odds",
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          },
-          "maxAmountRequired": "250000",
-          "maxTimeoutSeconds": 60,
-          "mimeType": "application/json",
-          "network": "base",
-          "outputSchema": {
-            "input": {
-              "bodyFields": {
-                "active": {
-                  "description": "Filter for active markets only",
-                  "required": false,
-                  "type": "boolean"
-                },
-                "limit": {
-                  "description": "Number of events to return (max 50)",
-                  "required": false,
-                  "type": "number"
-                },
-                "sortBy": {
-                  "description": "Sort by volume or date",
-                  "enum": [
-                    "volume",
-                    "startDate"
-                  ],
-                  "required": false,
-                  "type": "string"
-                }
-              },
-              "discoverable": true,
-              "method": "POST",
-              "type": "http"
-            }
-          },
-          "payTo": "0xa4bBE37f9A6Ae2dc36a607B91eB148C0ae163C91",
-          "resource": "https://b9c7a16b-b90f-4d3c-b73c-bb8d49f9a8fd-00-2zmwe913s9fbf.picard.replit.dev/x402/polymarket-events",
-          "scheme": "exact"
-        }
-      ],
-      "lastUpdated": "2025-12-02T04:48:21.723Z",
-      "resource": "https://b9c7a16b-b90f-4d3c-b73c-bb8d49f9a8fd-00-2zmwe913s9fbf.picard.replit.dev/x402/polymarket-events",
-      "type": "http",
-      "x402Version": 1
     }
   ],
   "total": 800,
-  "crawledAt": "2025-12-18T21:39:16.560Z",
+  "crawledAt": "2025-12-19T05:12:13.742Z",
   "facilitatorUrl": "https://api.cdp.coinbase.com/platform/v2/x402",
   "partial": true
 }

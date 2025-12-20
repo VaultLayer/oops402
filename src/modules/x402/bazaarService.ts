@@ -121,8 +121,9 @@ async function listDiscoveryResources(
   retryCount = 0
 ): Promise<DiscoveryResourcesResponse> {
   const baseUrl = facilitatorUrl || config.bazaar.facilitatorUrl;
-  const maxRetries = 3;
-  const baseDelay = 1000; // 1 second base delay
+  const maxRetries = 20; // Increased retries for persistent rate limiting
+  const baseDelay = 2000; // 2 seconds base delay
+  const maxDelay = 60000; // Cap at 60 seconds
 
   // Build query parameters
   const queryParams = new URLSearchParams();
@@ -152,13 +153,33 @@ async function listDiscoveryResources(
 
   // Handle rate limiting (429) with retry
   if (response.status === 429 && retryCount < maxRetries) {
-    const delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
+    // Check for Retry-After header (in seconds)
+    let delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
+    
+    const retryAfter = response.headers.get('Retry-After');
+    if (retryAfter) {
+      const retryAfterSeconds = parseInt(retryAfter, 10);
+      if (!isNaN(retryAfterSeconds)) {
+        // Use Retry-After if it's longer than our calculated delay
+        delay = Math.max(delay, retryAfterSeconds * 1000);
+      }
+    }
+    
+    // Cap the delay at maxDelay
+    delay = Math.min(delay, maxDelay);
+    
+    // Add jitter (±20%) to avoid thundering herd
+    const jitter = delay * 0.2 * (Math.random() * 2 - 1);
+    delay = Math.max(1000, delay + jitter);
+    
     logger.debug('Rate limited, retrying after delay', {
       retryCount: retryCount + 1,
-      delayMs: delay,
+      delayMs: Math.round(delay),
+      retryAfter: retryAfter || 'not provided',
       endpoint,
     });
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    
+    await new Promise((resolve) => setTimeout(resolve, Math.round(delay)));
     return listDiscoveryResources(params, facilitatorUrl, retryCount + 1);
   }
 
@@ -188,6 +209,9 @@ export async function crawlAllResources(): Promise<void> {
     const limit = 100; // Fetch in batches of 100
     let total = 0;
     let hasMore = true;
+    let baseDelay = 2000; // Start with 2 seconds between requests
+    let consecutiveRateLimits = 0;
+    const maxConsecutiveRateLimits = 3; // After 3 consecutive rate limits, increase delay
 
     while (hasMore) {
       logger.debug('Fetching bazaar resources page', { offset, limit });
@@ -205,27 +229,57 @@ export async function crawlAllResources(): Promise<void> {
         // Check if we've fetched all resources
         hasMore = offset < total;
 
+        // Reset consecutive rate limit counter on success
+        consecutiveRateLimits = 0;
+
         logger.debug('Fetched bazaar resources page', {
           itemsInPage: response.items.length,
           totalFetched: allResources.length,
           totalAvailable: total,
+          progress: total > 0 ? `${((allResources.length / total) * 100).toFixed(1)}%` : '0%',
         });
 
         // Add a delay between requests to avoid rate limiting
         // Only delay if there are more pages to fetch
         if (hasMore) {
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
+          // Add jitter to avoid synchronized requests
+          const jitter = baseDelay * 0.1 * (Math.random() * 2 - 1);
+          const delay = Math.max(1000, baseDelay + jitter);
+          await new Promise((resolve) => setTimeout(resolve, Math.round(delay)));
         }
       } catch (error) {
-        // If we hit rate limiting and have some resources, save what we have
-        if ((error as Error).message.includes('429') && allResources.length > 0) {
-          logger.warning('Rate limited during crawl, saving partial results', {
-            resourcesSaved: allResources.length,
+        const errorMessage = (error as Error).message;
+        
+        // Handle rate limiting more gracefully
+        if (errorMessage.includes('429')) {
+          consecutiveRateLimits++;
+          
+          // If we've hit multiple consecutive rate limits, increase the base delay
+          if (consecutiveRateLimits >= maxConsecutiveRateLimits) {
+            baseDelay = Math.min(baseDelay * 1.5, 10000); // Cap at 10 seconds
+            logger.info('Increasing request delay due to consecutive rate limits', {
+              newBaseDelay: baseDelay,
+              consecutiveRateLimits,
+            });
+            consecutiveRateLimits = 0; // Reset counter after adjusting
+          }
+          
+          // Wait longer before retrying the same request
+          const cooldownDelay = Math.min(baseDelay * 3, 30000); // Up to 30 seconds cooldown
+          logger.warning('Rate limited during crawl, cooling down before continuing', {
+            consecutiveRateLimits,
+            cooldownMs: cooldownDelay,
+            resourcesFetched: allResources.length,
             totalAvailable: total,
           });
-          hasMore = false; // Stop crawling but save what we have
+          
+          await new Promise((resolve) => setTimeout(resolve, cooldownDelay));
+          
+          // Continue the loop to retry the same offset
+          continue;
         } else {
-          throw error; // Re-throw other errors
+          // For non-rate-limit errors, throw immediately
+          throw error;
         }
       }
     }
