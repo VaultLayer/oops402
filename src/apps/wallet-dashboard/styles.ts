@@ -625,6 +625,13 @@ export const styles: Record<string, React.CSSProperties> = {
   payButton: {
     padding: "0.5rem 1rem",
     fontSize: "0.875rem",
+    background: "#0052FF",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
+    transition: "background 0.2s, transform 0.1s",
   },
   errorText: {
     color: "var(--error-text)",
@@ -893,7 +900,7 @@ export const styles: Record<string, React.CSSProperties> = {
     marginTop: "0.75rem",
     padding: "0.5rem 1rem",
     fontSize: "0.875rem",
-    background: "#00D4A1",
+    background: "#0052FF",
     color: "white",
     border: "none",
     borderRadius: "6px",
