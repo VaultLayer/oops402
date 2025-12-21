@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AgentSummary, AgentSearchResponse } from "../types";
 import { styles } from "../styles";
+import { checkAuthError } from "../utils/auth";
 
 interface AgentSearchSectionProps {
   onAgentSelect?: (agent: AgentSummary) => void;
@@ -83,6 +84,10 @@ export function AgentSearchSection({ onAgentSelect }: AgentSearchSectionProps) {
       const response = await fetch(`/api/discover/agents?${params.toString()}`, {
         credentials: "include",
       });
+      
+      if (await checkAuthError(response)) {
+        return;
+      }
       
       if (!response.ok) {
         throw new Error(`Failed to load agents: ${response.statusText}`);

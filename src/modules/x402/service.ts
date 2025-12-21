@@ -90,7 +90,7 @@ async function createViemAccountFromPKPEthersWallet(
       if (parameters.primaryType === "TransferWithAuthorization") {
         
         // Verify domain values match what's on-chain (critical for signature validation)
-        try {
+        /*try {
           const verifyingContract = parameters.domain.verifyingContract as Address;
           const chainId = parameters.domain.chainId;
           
@@ -159,7 +159,7 @@ async function createViemAccountFromPKPEthersWallet(
             error: error instanceof Error ? error.message : String(error),
             domain: parameters.domain,
           });
-        }
+        }*/
         
         // Use PKPEthersWallet._signTypedData - it's a proper Ethers wallet implementation
         // that handles EIP-712 signing correctly, including hash computation and signature formatting
@@ -186,7 +186,7 @@ async function createViemAccountFromPKPEthersWallet(
         
         // Verify the signature recovers to the correct address
         // Also compute the hash exactly as the contract does to ensure they match
-        try {
+        /*try {
           // Standard ethers hash (what PKPEthersWallet uses)
           const ethersHash = ethers.utils._TypedDataEncoder.hash(
             parameters.domain,
@@ -268,7 +268,7 @@ async function createViemAccountFromPKPEthersWallet(
           logger.warning("Failed to verify PKPEthersWallet signature recovery", {
             error: error instanceof Error ? error.message : String(error),
           });
-        }
+        }*/
         
         return signature as `0x${string}`;
       }

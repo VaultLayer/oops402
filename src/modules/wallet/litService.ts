@@ -195,7 +195,7 @@ export async function initializeLitServices(): Promise<void> {
 function getOAuthAuthMethodInfo(userId: string) {
   return {
     authMethodType: ethers.utils.keccak256(
-      ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V06")
+      ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V08")
     ),
     authMethodId: ethers.utils.keccak256(
       ethers.utils.toUtf8Bytes(`oauth:${userId}`)
@@ -630,227 +630,6 @@ export async function mintPKP(
     { value: mintCostValue }
   );
 
-  // Transaction simulation: Simulates the transaction before sending to catch revert reasons early
-  // This is useful for debugging but adds overhead. Disabled by default.
-  // Enable with LIT_ENABLE_TX_SIMULATION=true environment variable
-  if (ENABLE_TX_SIMULATION) {
-    try {
-    await pkpHelperContract.callStatic.mintNextAndAddAuthMethods(
-      litActionTypeBigNumber,
-      permittedAuthMethodTypes,
-      permittedAuthMethodIds,
-      permittedAuthMethodPubkeys,
-      permittedAuthMethodScopes,
-      true, // addPkpEthAddressAsPermittedAddress
-      true, // sendPkpToItself
-      { value: mintCostValue }
-    );
-    logger.debug("Transaction simulation successful - should not revert");
-  } catch (simulateError: any) {
-    // Decode revert reason from simulation
-    let revertReason = "Unknown revert reason";
-    let errorDetails: any = {};
-    
-    // Try to extract revert reason from error message (for require() statements)
-    if (simulateError.message) {
-      // Look for revert reason in the error message
-      const reasonMatch = simulateError.message.match(/reason="([^"]+)"/);
-      if (reasonMatch) {
-        revertReason = reasonMatch[1];
-      } else {
-        // Try to find error message in the full error string
-        const fullError = simulateError.toString();
-        const errorMsgMatch = fullError.match(/PKPHelper: ([^"]+)/);
-        if (errorMsgMatch) {
-          revertReason = `PKPHelper: ${errorMsgMatch[1]}`;
-        } else {
-          revertReason = simulateError.message;
-        }
-      }
-    }
-    
-    // Try to decode error data if present
-    if (simulateError.data && simulateError.data !== "0x") {
-      try {
-        const fs = await import('fs/promises');
-        const path = await import('path');
-        const abiPath = path.join(process.cwd(), '.tmp/lit-wallet-with-oauth/PkPhelper.abi');
-        const abiJson = await fs.readFile(abiPath, 'utf-8');
-        const abi = JSON.parse(abiJson);
-        const iface = new ethers.utils.Interface(abi);
-        
-        // Try to decode the error
-        const decoded = iface.parseError(simulateError.data);
-        revertReason = `${decoded.name}: ${JSON.stringify(decoded.args)}`;
-        errorDetails.decodedError = decoded;
-      } catch (decodeError: any) {
-        errorDetails.decodeError = decodeError.message;
-      }
-      errorDetails.errorData = simulateError.data;
-    }
-    
-    // If error data is empty, the revert might be from a nested call
-    // Check if it's a common issue like insufficient value
-    if (!simulateError.data || simulateError.data === "0x") {
-      // Try to call the underlying PKPNFT contract to see if mintNext would work
-      // Use the actual contract address and full ABI
-      const PKPNFT_ADDRESS = "0x487A9D096BB4B7Ac1520Cb12370e31e677B175EA";
-      
-      // Load the full ABI from file
-      let PKPNFT_ABI: any[];
-      try {
-        const fs = await import('fs/promises');
-        const path = await import('path');
-        const abiPath = path.join(process.cwd(), '.tmp/lit-wallet-with-oauth/PkpNft.abi');
-        const abiJson = await fs.readFile(abiPath, 'utf-8');
-        PKPNFT_ABI = JSON.parse(abiJson);
-      } catch (abiError: any) {
-        // Fallback to minimal ABI if file read fails
-        PKPNFT_ABI = [
-          {
-            "inputs": [],
-            "name": "CallerNotOwner",
-            "type": "error"
-          },
-          {
-            "inputs": [],
-            "name": "mintCost",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function"
-          },
-          {
-            "inputs": [{"internalType": "uint256", "name": "keyType", "type": "uint256"}],
-            "name": "mintNext",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "payable",
-            "type": "function"
-          }
-        ];
-        errorDetails.abiLoadError = abiError.message;
-      }
-      
-      try {
-        const pkpNftContract = new ethers.Contract(
-          PKPNFT_ADDRESS,
-          PKPNFT_ABI,
-          getProvider()
-        );
-        
-        // Check the actual mint cost from PKPNFT contract directly
-        const actualMintCost = await pkpNftContract.mintCost();
-        errorDetails.actualMintCost = actualMintCost.toString();
-        errorDetails.expectedMintCost = mintCostValue.toString();
-        errorDetails.mintCostMatch = actualMintCost.eq(mintCostValue);
-        
-        // The contract requires EXACT equality (== not >=) - line 186 of PkpNft.sol
-        // require(msg.value == s().mintCost, "You must pay exactly mint cost");
-        if (!actualMintCost.eq(mintCostValue)) {
-          revertReason = `Mint cost mismatch: PKPNFT expects exactly ${actualMintCost.toString()} wei, but we're sending ${mintCostValue.toString()} wei. The contract requires EXACT equality (==, not >=).`;
-        } else {
-          // Also check what PKPHelper thinks the mint cost is
-          const helperMintCost = await litContracts.pkpNftContract.read.mintCost();
-          errorDetails.helperMintCost = helperMintCost.toString();
-          errorDetails.helperVsDirectMatch = helperMintCost.eq(actualMintCost);
-          
-          if (!helperMintCost.eq(actualMintCost)) {
-            revertReason = `Mint cost mismatch between PKPHelper view (${helperMintCost.toString()}) and PKPNFT direct (${actualMintCost.toString()})`;
-          } else {
-            // Try the actual mintNext call to see what the real error is
-            // Potential revert reasons from PkpNft.sol:
-            // 1. Line 186: "You must pay exactly mint cost" (msg.value != mintCost) - CHECKED ✓
-            // 2. Line 188: getNextDerivedKeyId() uses blockhash(block.number - 1) - might fail in same block
-            // 3. Line 189-192: router.getDerivedPubkey() might fail
-            // 4. Line 194: routeDerivedKey() -> router.setRoutingData() might fail
-            // 5. Line 268: "This PKP has not been routed yet" (router.isRouted(tokenId) == false)
-            // 6. _safeMint might revert if token exists or recipient issues
-            
-            // Check router and staking addresses first
-            try {
-              const routerAddress = await pkpNftContract.getRouterAddress();
-              const stakingAddress = await pkpNftContract.getStakingAddress();
-              errorDetails.routerAddress = routerAddress;
-              errorDetails.stakingAddress = stakingAddress;
-              
-              // Check if router contract exists and is callable
-              const routerCode = await getProvider().getCode(routerAddress);
-              const stakingCode = await getProvider().getCode(stakingAddress);
-              errorDetails.routerHasCode = routerCode !== "0x";
-              errorDetails.stakingHasCode = stakingCode !== "0x";
-              
-              if (routerCode === "0x") {
-                revertReason = `PKPNFT router contract at ${routerAddress} has no code (not deployed or wrong address)`;
-              } else if (stakingCode === "0x") {
-                revertReason = `PKPNFT staking contract at ${stakingAddress} has no code (not deployed or wrong address)`;
-              }
-            } catch (addrError: any) {
-              errorDetails.addressCheckError = addrError.message;
-            }
-            
-            // Only try mintNext if addresses are valid
-            if (!revertReason || revertReason === "Unknown revert reason") {
-              try {
-                await pkpNftContract.callStatic.mintNext(litActionTypeBigNumber, { value: mintCostValue });
-              } catch (mintError: any) {
-                // Try to decode the error from PKPNFT using the full ABI
-                if (mintError.data && mintError.data !== "0x") {
-                  try {
-                    const iface = new ethers.utils.Interface(PKPNFT_ABI);
-                    const decoded = iface.parseError(mintError.data);
-                    revertReason = `PKPNFT.mintNext error: ${decoded.name} - ${JSON.stringify(decoded.args)}`;
-                    errorDetails.decodedError = decoded;
-                  } catch (decodeError: any) {
-                    // Try to decode as Error(string) - common messages:
-                    // - "You must pay exactly mint cost" (line 186)
-                    // - "This PKP has not been routed yet" (line 268)
-                    if (mintError.data.startsWith("0x08c379a0")) {
-                      try {
-                        const decoded = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + mintError.data.slice(10));
-                        revertReason = `PKPNFT.mintNext error: ${decoded[0]}`;
-                        errorDetails.errorString = decoded[0];
-                      } catch {}
-                    }
-                    errorDetails.decodeError = decodeError.message;
-                  }
-                }
-                if (!revertReason || revertReason === "Unknown revert reason") {
-                  revertReason = `PKPNFT.mintNext failed: ${mintError.message || mintError.reason || 'unknown error'}`;
-                }
-                errorDetails.mintError = mintError.message || mintError.toString();
-                errorDetails.mintErrorData = mintError.data;
-                
-                // Check for specific known error messages from the contract
-                const errorMsg = mintError.message || mintError.toString();
-                if (errorMsg.includes("You must pay exactly mint cost")) {
-                  revertReason = `PKPNFT.mintNext: You must pay exactly mint cost. Expected: ${actualMintCost.toString()} wei, Sent: ${mintCostValue.toString()} wei`;
-                } else if (errorMsg.includes("This PKP has not been routed yet")) {
-                  revertReason = `PKPNFT.mintNext: This PKP has not been routed yet. This suggests routeDerivedKey() or router.setRoutingData() failed.`;
-                } else if (errorMsg.includes("ERC721: token already minted")) {
-                  revertReason = `PKPNFT.mintNext: Token already exists (collision in tokenId calculation)`;
-                }
-              }
-            }
-          }
-        }
-      } catch (nftError: any) {
-        if (!revertReason || revertReason === "Unknown revert reason") {
-          revertReason = `PKPNFT contract call failed: ${nftError.message || nftError.reason || 'unknown error'}`;
-        }
-        errorDetails.nftError = nftError.message || nftError.toString();
-        errorDetails.nftErrorData = nftError.data;
-      }
-    }
-    
-      logger.error("Transaction simulation failed - will revert", new Error(revertReason), {
-        ...errorDetails,
-        errorCode: simulateError.code,
-        errorData: simulateError.data,
-        fullError: simulateError.toString(),
-      });
-      throw new Error(`Transaction will revert: ${revertReason}`);
-    }
-  }
-
   // Manually estimate gas with error handling (like the working example)
   // This helps avoid gas estimation failures that can cause transaction reverts
   let gasLimit: ethers.BigNumber;
@@ -932,7 +711,7 @@ export async function getPkpSessionSigs(
 ): Promise<PKPSessionSigs> {
   const litNodeClient = await getLitNodeClient();
 
- const signer = getSigner();
+  const signer = getSigner();
   const capacityTokenId = await getCapacityCredit();
 
   logger.debug("Creating capacity delegation auth sig", { 
@@ -961,39 +740,24 @@ export async function getPkpSessionSigs(
     pkpEthAddress: pkp.ethAddress,
   });
 
-  // Verify PKP scopes before getting session sigs (for debugging production vs localhost)
-  try {
-    const verification = await verifyPkpAuthMethods(pkp);
-    logger.debug("PKP auth methods verification", {
-      hasLitAction: verification.hasLitAction,
-      litActionHasSignAnything: verification.litActionHasSignAnything,
-      issues: verification.issues,
-    });
-  } catch (error) {
-    logger.warning("Failed to verify PKP auth methods before session sigs", { error: (error as Error).message });
-  }
-
   // Use getLitActionSessionSigs when authentication is via Lit Action
   // See: https://developer.litprotocol.com/sdk/authentication/session-sigs/get-lit-action-session-sigs
   // Note: capacity delegation is not needed since the PKP is registered as a payee via addPayee
   const litClient = litNodeClient as any;
-  
-  if (!litClient.getLitActionSessionSigs) {
-    throw new Error("getLitActionSessionSigs method not found in LitNodeClient. Please ensure you're using a compatible SDK version.");
-  }
 
   // Log detailed information for debugging production vs localhost differences
   const litActionCodeBase64 = Buffer.from(litActionCode).toString("base64");
   
-  // Compute expected Lit Action CID to verify we're using the right code
-  const expectedLitActionCid = await getLitActionCodeIpfsCid();
-  const expectedLitActionId = `0x${Buffer.from(bs58.decode(expectedLitActionCid)).toString("hex")}`;
+  // Sign the OAuth token with LIT_PRIVATE_KEY signer to get the expected audience address
+  // The Lit Action will recover this address from the signature to validate the token audience
+  const oauthTokenSignature = await signer.signMessage(oauthAccessToken);
   
   const jsParams = {
     oauthUserData: JSON.stringify({
       accessToken: oauthAccessToken,
     }),
     pkpTokenId: pkp.tokenId,
+    oauthTokenSignature: oauthTokenSignature,
   };
   const resourceAbilityRequests = [
     {
@@ -1001,70 +765,10 @@ export async function getPkpSessionSigs(
       ability: LIT_ABILITY.PKPSigning,
     },
   ];
-  const expiration = new Date(Date.now() + 1000 * 60 * 10).toISOString();
-
-  // Verify the Lit Action code matches what's registered on the PKP
-  const litContracts = await getLitContractsClient();
-  const litActionType = ethers.BigNumber.from(AUTH_METHOD_TYPE.LitAction);
-  const personalSignScope = ethers.BigNumber.from(AUTH_METHOD_SCOPE.PersonalSign);
-  let registeredLitActionId: string | null = null;
-  let registeredLitActionScopes: any = null;
-  let hasPersonalSignScope = false;
-  
-  try {
-    const authMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(pkp.tokenId);
-    for (const method of authMethods) {
-      const methodType = ethers.BigNumber.from(method.authMethodType);
-      if (methodType.eq(litActionType)) {
-        registeredLitActionId = method.id;
-        // Get scopes for this Lit Action
-        const maxScopeId = 10;
-        registeredLitActionScopes = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethodScopes(
-          pkp.tokenId,
-          litActionType,
-          method.id,
-          maxScopeId
-        );
-        // Check if PersonalSign scope is present
-        hasPersonalSignScope = registeredLitActionScopes && registeredLitActionScopes[personalSignScope.toNumber()];
-        break;
-      }
-    }
-  } catch (error) {
-    logger.warning("Failed to get registered Lit Action info", { error: (error as Error).message });
-  }
-  
-  // Warn if PersonalSign scope is missing (required for PKPSigning)
-  if (!hasPersonalSignScope && registeredLitActionId) {
-    const registeredCid = bs58.encode(Buffer.from(registeredLitActionId.replace(/^0x/, ""), "hex"));
-    logger.warning("PKP Lit Action missing PersonalSign scope (scope 2)", {
-      tokenId: pkp.tokenId,
-      registeredLitActionCid: registeredCid,
-      expectedLitActionCid: expectedLitActionCid,
-      fixCommand: `ts-node scripts/add-personalsign-scope.ts ${pkp.tokenId}`,
-    });
-  }
-
-  // Log consolidated session sigs request (only essential info)
-  const isDevelopment = process.env.NODE_ENV !== "production";
-  if (isDevelopment) {
-    logger.debug("Getting Lit Action session signatures", {
-      pkpTokenId: pkp.tokenId,
-      pkpEthAddress: pkp.ethAddress,
-      expectedLitActionCid,
-      litActionIdMatch: registeredLitActionId ? registeredLitActionId.toLowerCase() === expectedLitActionId.toLowerCase() : null,
-      registeredLitActionScopes: registeredLitActionScopes ? registeredLitActionScopes.map((s: boolean, i: number) => s ? i : null).filter((s: any) => s !== null) : null,
-      hasPersonalSignScope,
-      capacityTokenId,
-      expiration,
-    });
-  } else {
-    logger.debug("Getting Lit Action session signatures", {
-      pkpTokenId: pkp.tokenId,
-      litActionIdMatch: registeredLitActionId ? registeredLitActionId.toLowerCase() === expectedLitActionId.toLowerCase() : null,
-      hasPersonalSignScope,
-    });
-  }
+  // Session signature duration - configurable via env var, defaults to 10 minutes
+  // Should match or be shorter than the MAX_TOKEN_AGE_SECONDS constant in litAction.ts (600 seconds = 10 minutes)
+  const sessionSigDurationMinutes = parseInt(process.env.LIT_SESSION_SIG_DURATION_MINUTES || "10", 10);
+  const expiration = new Date(Date.now() + 1000 * 60 * sessionSigDurationMinutes).toISOString();
 
   const sessionSignatures = await litClient.getLitActionSessionSigs({
     pkpPublicKey: pkp.publicKey,

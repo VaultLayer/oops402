@@ -16,6 +16,7 @@ import { McpConnectionModal } from "./components/McpConnectionModal";
 import { PaymentHistory } from "./components/PaymentHistory";
 import { styles } from "./styles";
 import "./styles.css";
+import { checkAuthError } from "./utils/auth";
 
 function WalletDashboard() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -101,11 +102,10 @@ function WalletDashboard() {
       const response = await fetch("/api/profile", {
         credentials: "include",
       });
+      if (await checkAuthError(response)) {
+        return;
+      }
       if (!response.ok) {
-        if (response.status === 401) {
-          window.location.href = "/login";
-          return;
-        }
         return;
       }
       const data = await response.json();
@@ -121,11 +121,10 @@ function WalletDashboard() {
       const response = await fetch("/api/wallet", {
         credentials: "include",
       });
+      if (await checkAuthError(response)) {
+        return;
+      }
       if (!response.ok) {
-        if (response.status === 401) {
-          window.location.href = "/login";
-          return;
-        }
         throw new Error(`Failed to fetch wallet: ${response.statusText}`);
       }
       const data = await response.json();
@@ -144,6 +143,9 @@ function WalletDashboard() {
       const response = await fetch("/api/wallet/balance", {
         credentials: "include",
       });
+      if (await checkAuthError(response)) {
+        return;
+      }
       if (!response.ok) return;
       const data = await response.json();
       setBalance({
@@ -173,6 +175,9 @@ function WalletDashboard() {
         credentials: "include",
         body: JSON.stringify(transferForm),
       });
+      if (await checkAuthError(response)) {
+        return;
+      }
       if (!response.ok) {
         throw new Error(`Transfer failed: ${response.statusText}`);
       }

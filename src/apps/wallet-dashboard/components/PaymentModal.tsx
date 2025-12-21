@@ -61,6 +61,9 @@ export function PaymentModal({
       });
 
       const data = await response.json();
+      if (await checkAuthError(response, data)) {
+        return;
+      }
       if (!response.ok) {
         throw new Error(data.error || `Payment failed: ${response.statusText}`);
       }

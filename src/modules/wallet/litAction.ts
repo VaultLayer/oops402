@@ -14,10 +14,11 @@ const _litActionCode = async () => {
   const LIT_PKP_PERMISSIONS_CONTRACT_ADDRESS =
     "0x60C1ddC8b9e38F730F0e7B70A2F84C1A98A69167";
   const OAUTH_AUTH_METHOD_TYPE = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V06")
+    ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V08")
   );
   const AUTH0_DOMAIN = "oops402pay.us.auth0.com";
-  const AUTH0_AUDIENCE = "urn:oops402";
+  // Maximum token age in seconds (10 minutes) - tokens older than this will be rejected
+  const MAX_TOKEN_AGE_SECONDS = 600;
 
   console.log("[AUTH0_LIT_ACTION] Starting OAuth verification");
   console.log("[AUTH0_LIT_ACTION] PKP Token ID:", pkpTokenId);
@@ -80,18 +81,39 @@ const _litActionCode = async () => {
       }
       console.log("[AUTH0_LIT_ACTION] ✅ Issuer verified");
 
-      // Verify AUTH0_AUDIENCE if provided (aud claim)
-      if (AUTH0_AUDIENCE) {
-        const tokenAudience = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-        if (!tokenAudience.includes(AUTH0_AUDIENCE)) {
-          console.error("[AUTH0_LIT_ACTION] Audience mismatch:", payload.aud, "expected:", AUTH0_AUDIENCE);
-          return Lit.Actions.setResponse({
-            response: "false",
-            reason: `Token AUTH0_AUDIENCE mismatch: expected ${AUTH0_AUDIENCE}, got ${payload.aud}`,
-          });
-        }
-        console.log("[AUTH0_LIT_ACTION] ✅ Audience verified");
+      // Verify tokenAudience matches the address derived from LIT_PRIVATE_KEY
+      // Recover the address from the signature of the OAuth token (signed with LIT_PRIVATE_KEY)
+      // oauthTokenSignature is passed as a jsParam from litService.ts
+      if (!oauthTokenSignature) {
+        console.error("[AUTH0_LIT_ACTION] Missing oauthTokenSignature in jsParams");
+        return Lit.Actions.setResponse({
+          response: "false",
+          reason: "Missing oauthTokenSignature - cannot verify audience",
+        });
       }
+      
+      // Recover the address from the signature
+      // The signature was created by signing the accessToken with LIT_PRIVATE_KEY
+      const expectedAudienceAddress = ethers.utils.recoverAddress(
+        ethers.utils.hashMessage(accessToken),
+        oauthTokenSignature
+      );
+      
+      console.log("[AUTH0_LIT_ACTION] Expected audience address (from signature):", expectedAudienceAddress);
+      
+      // Compare addresses in lowercase to avoid case sensitivity issues
+      const expectedAudienceAddressLower = expectedAudienceAddress.toLowerCase();
+      const tokenAudience = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+      const tokenAudienceLower = tokenAudience.map((aud: string) => aud.toLowerCase());
+      
+      if (!tokenAudienceLower.includes(expectedAudienceAddressLower)) {
+        console.error("[AUTH0_LIT_ACTION] Audience mismatch:", payload.aud, "expected:", expectedAudienceAddress);
+        return Lit.Actions.setResponse({
+          response: "false",
+          reason: `Token AUTH0_AUDIENCE mismatch: expected ${expectedAudienceAddress}, got ${payload.aud}`,
+        });
+      }
+      console.log("[AUTH0_LIT_ACTION] ✅ Audience verified");
 
       // Verify token hasn't expired (exp claim)
       const currentTimeSeconds = Math.floor(Date.now() / 1000);
@@ -131,14 +153,14 @@ const _litActionCode = async () => {
       // Verify that the user ID matches (Auth0 uses 'sub' field)
       console.log("[AUTH0_LIT_ACTION] User ID:", payload.sub);
 
-      // Validate token is recent (issued within last 24 hours) - additional security check
+      // Validate token is recent (issued within MAX_TOKEN_AGE_SECONDS) - additional security check
       const tokenAge = currentTimeSeconds - payload.iat;
       console.log("[AUTH0_LIT_ACTION] Token age:", tokenAge, "seconds");
-      if (tokenAge > 86400) { // 24 hours
+      if (tokenAge > MAX_TOKEN_AGE_SECONDS) {
         console.error("[AUTH0_LIT_ACTION] Token too old");
         return Lit.Actions.setResponse({
           response: "false",
-          reason: `Token is too old (${Math.floor(tokenAge / 3600)} hours)`,
+          reason: `Token is too old (${Math.floor(tokenAge / 60)} minutes, max allowed: ${MAX_TOKEN_AGE_SECONDS / 60} minutes)`,
         });
       }
 

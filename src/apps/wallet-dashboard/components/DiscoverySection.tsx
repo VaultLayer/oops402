@@ -3,6 +3,7 @@ import { CopyIcon, CheckIcon } from "./icons";
 import { formatAmountDisplay, truncateAddress } from "../utils/formatting";
 import { DiscoveryItem, DiscoveryResponse } from "../types";
 import { styles } from "../styles";
+import { checkAuthError } from "../utils/auth";
 
 interface DiscoverySectionProps {
   onPay: (resourceUrl: string, acceptIndex: number, item: DiscoveryItem) => void;
@@ -52,6 +53,9 @@ export function DiscoverySection({ onPay, onOpenDirectCaller }: DiscoverySection
       const response = await fetch(`/api/discover/bazaar?${params.toString()}`, {
         credentials: "include",
       });
+      if (await checkAuthError(response)) {
+        return;
+      }
       if (!response.ok) {
         throw new Error(`Failed to load discovery items: ${response.statusText}`);
       }

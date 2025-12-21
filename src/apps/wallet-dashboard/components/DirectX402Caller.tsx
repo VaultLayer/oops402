@@ -3,6 +3,7 @@ import { CloseIcon } from "./icons";
 import { formatAmountDisplay } from "../utils/formatting";
 import { PaymentResult } from "../types";
 import { styles } from "../styles";
+import { checkAuthError } from "../utils/auth";
 
 interface DirectX402CallerProps {
   walletAddress: string;
@@ -51,6 +52,9 @@ export function DirectX402Caller({ walletAddress, isOpen, onClose }: DirectX402C
       });
 
       const data = await response.json();
+      if (await checkAuthError(response, data)) {
+        return;
+      }
       if (!response.ok) {
         throw new Error(data.error || "Failed to discover schema");
       }
@@ -106,6 +110,9 @@ export function DirectX402Caller({ walletAddress, isOpen, onClose }: DirectX402C
       });
 
       const data = await response.json();
+      if (await checkAuthError(response, data)) {
+        return;
+      }
       if (!response.ok) {
         throw new Error(data.error || `Payment failed: ${response.statusText}`);
       }

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { CopyIcon, CheckIcon } from "./icons";
+import { CopyIcon, CheckIcon, RefreshIcon } from "./icons";
 import { truncateAddress } from "../utils/formatting";
 import { PaymentHistoryItem, PaymentHistoryResponse, DiscoveryItem } from "../types";
 import { PaymentModal } from "./PaymentModal";
 import { styles } from "../styles";
+import { checkAuthError } from "../utils/auth";
 
 interface PaymentHistoryProps {
   walletAddress: string;
@@ -52,6 +53,9 @@ export function PaymentHistory({ walletAddress }: PaymentHistoryProps) {
       const response = await fetch(`/api/wallet/payment-history?${params.toString()}`, {
         credentials: "include",
       });
+      if (await checkAuthError(response)) {
+        return;
+      }
       if (!response.ok) {
         throw new Error(`Failed to load payment history: ${response.statusText}`);
       }
@@ -165,7 +169,20 @@ export function PaymentHistory({ walletAddress }: PaymentHistoryProps) {
   return (
     <div style={styles.section}>
       <div style={styles.sectionHeader}>
-        <h2 style={styles.sectionTitle}>Payment History</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <h2 style={styles.sectionTitle}>Payment History</h2>
+          <button
+            onClick={() => loadPaymentHistory()}
+            style={styles.iconButton}
+            className="icon-button"
+            title="Refresh payment history"
+            disabled={loading}
+          >
+            <RefreshIcon style={{
+              animation: loading ? "spin 1s linear infinite" : "none",
+            }} />
+          </button>
+        </div>
         <div style={styles.filterRow}>
           <label style={styles.filterLabel}>
             Timeframe:
