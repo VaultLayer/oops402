@@ -749,7 +749,12 @@ async function main() {
           });
         } catch (error) {
           logger.error('Payment failed', error as Error);
-          res.status(500).json({ error: 'Payment failed', message: (error as Error).message });
+          // Check if it's a token age error - return 401 to trigger re-authentication
+          if (error instanceof Error && error.message.includes('Token is too old')) {
+            res.status(401).json({ error: 'Authentication required', message: error.message });
+          } else {
+            res.status(500).json({ error: 'Payment failed', message: (error as Error).message });
+          }
         }
       });
 
@@ -810,7 +815,12 @@ async function main() {
           });
         } catch (error) {
           logger.error('Failed to transfer tokens', error as Error);
-          res.status(500).json({ error: 'Failed to transfer tokens', message: (error as Error).message });
+          // Check if it's a token age error - return 401 to trigger re-authentication
+          if (error instanceof Error && error.message.includes('Token is too old')) {
+            res.status(401).json({ error: 'Authentication required', message: error.message });
+          } else {
+            res.status(500).json({ error: 'Failed to transfer tokens', message: (error as Error).message });
+          }
         }
       });
 

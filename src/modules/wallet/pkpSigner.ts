@@ -29,7 +29,7 @@ export class PKPAccount {
   }
 
   /**
-   * Update session signatures (they expire after 10 minutes)
+   * Update session signatures (they expire after the configured duration, default: 1 hour)
    */
   updateSessionSigs(sessionSigs: PKPSessionSigs): void {
     this.sessionSigs = sessionSigs;

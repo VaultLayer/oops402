@@ -195,7 +195,7 @@ export async function initializeLitServices(): Promise<void> {
 function getOAuthAuthMethodInfo(userId: string) {
   return {
     authMethodType: ethers.utils.keccak256(
-      ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V09")
+      ethers.utils.toUtf8Bytes("AUTH0_AUTH_METHOD_V010")
     ),
     authMethodId: ethers.utils.keccak256(
       ethers.utils.toUtf8Bytes(`oauth:${userId}`)
@@ -860,6 +860,62 @@ export async function mintPKP(
 }
 
 /**
+ * Check if Auth0 token is too old (older than MAX_TOKEN_AGE_SECONDS)
+ * This prevents attempting to create session signatures with tokens that will be rejected by Lit Action
+ */
+function checkTokenAge(oauthAccessToken: string): void {
+  try {
+    // Decode JWT token to get iat (issued at) claim
+    const tokenParts = oauthAccessToken.split('.');
+    if (tokenParts.length !== 3) {
+      // Not a JWT, can't check age - let Lit Action handle it
+      return;
+    }
+
+    // Decode payload (second part)
+    const payloadBase64Url = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payloadBase64 = payloadBase64Url + '='.repeat((4 - payloadBase64Url.length % 4) % 4);
+    const payloadDecoded = Buffer.from(payloadBase64, 'base64').toString('utf-8');
+    const payload = JSON.parse(payloadDecoded);
+
+    // Check if token has iat claim
+    if (!payload.iat) {
+      // No iat claim, can't check age - let Lit Action handle it
+      return;
+    }
+
+    // Check token age (MAX_TOKEN_AGE_SECONDS = 3600 = 1 hour, same as Lit Action)
+    const MAX_TOKEN_AGE_SECONDS = 3600;
+    const currentTimeSeconds = Math.floor(Date.now() / 1000);
+    const tokenAge = currentTimeSeconds - payload.iat;
+
+    if (tokenAge > MAX_TOKEN_AGE_SECONDS) {
+      const ageMinutes = Math.floor(tokenAge / 60);
+      const maxAgeMinutes = MAX_TOKEN_AGE_SECONDS / 60;
+      throw new Error(
+        `Token is too old (${ageMinutes} minutes, max allowed: ${maxAgeMinutes} minutes). ` +
+        `Please re-authenticate to get a fresh token.`
+      );
+    }
+
+    logger.debug("Token age check passed", {
+      tokenAgeSeconds: tokenAge,
+      tokenAgeMinutes: Math.floor(tokenAge / 60),
+      maxAgeSeconds: MAX_TOKEN_AGE_SECONDS,
+    });
+  } catch (error) {
+    // If it's our age check error, re-throw it
+    if (error instanceof Error && error.message.includes("Token is too old")) {
+      throw error;
+    }
+    // For other errors (parsing, etc.), log and continue - let Lit Action handle validation
+    logger.debug("Failed to check token age, will let Lit Action validate", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
  * Get PKP session signatures for signing
  */
 export async function getPkpSessionSigs(
@@ -867,6 +923,9 @@ export async function getPkpSessionSigs(
   oauthAccessToken: string,
   pkp: PKP
 ): Promise<PKPSessionSigs> {
+  // Check token age before attempting to create session signatures
+  // This provides early feedback instead of failing deep in Lit Action
+  checkTokenAge(oauthAccessToken);
   const litNodeClient = await getLitNodeClient();
 
   const signer = getSigner();
@@ -923,9 +982,9 @@ export async function getPkpSessionSigs(
       ability: LIT_ABILITY.PKPSigning,
     },
   ];
-  // Session signature duration - configurable via env var, defaults to 10 minutes
-  // Should match or be shorter than the MAX_TOKEN_AGE_SECONDS constant in litAction.ts (600 seconds = 10 minutes)
-  const sessionSigDurationMinutes = parseInt(process.env.LIT_SESSION_SIG_DURATION_MINUTES || "10", 10);
+  // Session signature duration - configurable via env var, defaults to 1 hour
+  // Should match or be shorter than the MAX_TOKEN_AGE_SECONDS constant in litAction.ts (3600 seconds = 1 hour)
+  const sessionSigDurationMinutes = parseInt(process.env.LIT_SESSION_SIG_DURATION_MINUTES || "60", 10);
   const expiration = new Date(Date.now() + 1000 * 60 * sessionSigDurationMinutes).toISOString();
 
   const sessionSignatures = await litClient.getLitActionSessionSigs({

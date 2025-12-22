@@ -545,6 +545,56 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
         // External auth mode (e.g., Auth0): use the access token directly
         // In external mode, the access token is the OAuth token (e.g., Auth0 JWT)
         oauthAccessToken = accessToken;
+        
+        // Check token age for Auth0 tokens (they're JWTs)
+        // This prevents attempting operations with tokens that will be rejected by Lit Action
+        if (config.auth.provider === 'auth0') {
+          try {
+            // Decode JWT to check iat (issued at) claim
+            const tokenParts = accessToken.split('.');
+            if (tokenParts.length === 3) {
+              const payloadBase64Url = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+              const payloadBase64 = payloadBase64Url + '='.repeat((4 - payloadBase64Url.length % 4) % 4);
+              const payloadDecoded = Buffer.from(payloadBase64, 'base64').toString('utf-8');
+              const payload = JSON.parse(payloadDecoded);
+              
+              if (payload.iat) {
+                const MAX_TOKEN_AGE_SECONDS = 3600; // 1 hour, same as Lit Action
+                const currentTimeSeconds = Math.floor(Date.now() / 1000);
+                const tokenAge = currentTimeSeconds - payload.iat;
+                
+                if (tokenAge > MAX_TOKEN_AGE_SECONDS) {
+                  const ageMinutes = Math.floor(tokenAge / 60);
+                  const maxAgeMinutes = MAX_TOKEN_AGE_SECONDS / 60;
+                  const timeUntilExpiry = payload.exp ? payload.exp - currentTimeSeconds : 0;
+                  logger.warning("Auth0 token too old for MCP request", {
+                    sessionId,
+                    userId,
+                    tokenAgeSeconds: tokenAge,
+                    tokenAgeMinutes: ageMinutes,
+                    maxAgeMinutes,
+                    timeUntilExpirySeconds: timeUntilExpiry,
+                  });
+                  throw new Error(
+                    `Token is too old (${ageMinutes} minutes, max allowed: ${maxAgeMinutes} minutes). ` +
+                    `Token expires in ${Math.max(0, Math.floor(timeUntilExpiry / 60))} minutes. ` +
+                    `Please refresh your token using the refresh_token grant type at ${config.baseUri}/.well-known/oauth-authorization-server`
+                  );
+                }
+              }
+            }
+          } catch (error) {
+            // If it's our age check error, re-throw it
+            if (error instanceof Error && error.message.includes("Token is too old")) {
+              throw error;
+            }
+            // For other errors (parsing, etc.), log and continue - let Lit Action handle validation
+            logger.debug("Failed to check Auth0 token age, will let Lit Action validate", {
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+        
         logger.debug("Using access token directly (external auth mode)", { 
           sessionId, 
           userId, 

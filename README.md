@@ -248,30 +248,30 @@ For local development, the server supports an **internal auth mode** where a dem
 
 - `LIT_SESSION_SIG_DURATION_MINUTES` - Session signature duration in minutes (default: 10)
   - Controls how long PKP session signatures remain valid
-  - Should match or be shorter than the token max age enforced by Lit Actions (10 minutes)
-  - Example: `10` (10 minutes)
+  - Should match or be shorter than the token max age enforced by Lit Actions (1 hour)
+  - Example: `60` (1 hour)
 
 **Token Expiration and Security:**
 
 Oops!402 implements multiple layers of token expiration for enhanced security:
 
-1. **Auth0 Token Expiration**: Configured in the Auth0 dashboard (recommended: 10 minutes or less)
+1. **Auth0 Token Expiration**: Configured in the Auth0 dashboard (recommended: 1 hour or less)
    - This is the primary expiration time for OAuth tokens issued by Auth0
    - Configure in Auth0 Dashboard → APIs → Your API → Settings → Token Expiration
 
-2. **Lit Action Token Max Age**: Hardcoded constant in the Lit Action (`MAX_TOKEN_AGE_SECONDS = 600` = 10 minutes)
-   - The Lit Action enforces a maximum token age of 10 minutes, regardless of Auth0's expiration setting
-   - Even if Auth0 allows longer token expiration, tokens older than 10 minutes will be rejected
+2. **Lit Action Token Max Age**: Hardcoded constant in the Lit Action (`MAX_TOKEN_AGE_SECONDS = 3600` = 1 hour)
+   - The Lit Action enforces a maximum token age of 1 hour, regardless of Auth0's expiration setting
+   - Even if Auth0 allows longer token expiration, tokens older than 1 hour will be rejected
    - This provides defense in depth against token theft attacks
 
-3. **Session Signature Duration**: Configurable via `LIT_SESSION_SIG_DURATION_MINUTES` (default: 10 minutes)
+3. **Session Signature Duration**: Configurable via `LIT_SESSION_SIG_DURATION_MINUTES` (default: 1 hour)
    - Session signatures automatically expire when tokens would be considered too old
    - Ensures no session signatures exist for tokens that would be rejected by the Lit Action
    - Users must re-authenticate when tokens age out
 
 **Security Relationship:**
-- Session signature duration should match or be shorter than the Lit Action's token max age (10 minutes)
-- If a token is stolen, the maximum window of vulnerability is limited to the token max age (10 minutes)
+- Session signature duration should match or be shorter than the Lit Action's token max age (1 hour)
+- If a token is stolen, the maximum window of vulnerability is limited to the token max age (1 hour)
 - All three layers work together to minimize the attack surface
 
 ## Session Management Config
