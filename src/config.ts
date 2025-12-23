@@ -43,6 +43,20 @@ export interface Config {
     crawlIntervalMs: number;
     facilitatorUrl: string;
   };
+
+  // Supabase configuration
+  supabase: {
+    url: string;
+    anonKey: string;
+    serviceRoleKey?: string;
+  };
+
+  // Promotion configuration
+  promotion: {
+    feePerDay: string; // Fee per day in USDC (as string to handle large numbers)
+    paymentRecipient?: string; // Wallet address that receives promotion payments (optional - if not set, only amount is validated)
+    chainId?: number; // Chain ID for promotion payments (optional, defaults to Base)
+  };
 }
 
 /**
@@ -100,6 +114,20 @@ function loadConfig(): Config {
       cacheFile: process.env.X402_BAZAAR_CACHE_FILE || 'bazaar-resources.json',
       crawlIntervalMs: Number(process.env.X402_BAZAAR_CRAWL_INTERVAL_MS) || 3600000, // Default: 1 hour
       facilitatorUrl: process.env.X402_FACILITATOR_URL || 'https://api.cdp.coinbase.com/platform/v2/x402'
+    },
+
+    // Supabase configuration
+    supabase: {
+      url: process.env.SUPABASE_URL || '',
+      anonKey: process.env.SUPABASE_ANON_KEY || '',
+      serviceRoleKey: process.env.SUPABASE_KEY // Optional, for admin operations
+    },
+
+    // Promotion configuration
+    promotion: {
+      feePerDay: process.env.PROMOTION_FEE_PER_DAY || '0.01', // Default: 0.01 USDC per day
+      paymentRecipient: process.env.PROMOTION_PAYMENT_RECIPIENT, // Optional: Wallet address that receives promotion payments
+      chainId: process.env.PROMOTION_CHAIN_ID ? Number(process.env.PROMOTION_CHAIN_ID) : 8453, // Default: Base mainnet
     }
   };
 }
@@ -123,4 +151,6 @@ if (config.auth.mode === 'external') {
 console.log('   Redis:', config.redis.enabled ? 'enabled' : 'disabled');
 console.log('   Bazaar Cache:', config.bazaar.cacheFile);
 console.log('   Bazaar Crawl Interval:', `${config.bazaar.crawlIntervalMs / 1000 / 60} minutes`);
+console.log('   Supabase:', config.supabase.url ? 'enabled' : 'disabled');
+console.log('   Promotion Fee Per Day:', `${config.promotion.feePerDay} USDC`);
 console.log('');

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fund Wallet</title>
+    <style>
+      :root {
+        color: #0b0b0f;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        padding: 16px;
+        background: transparent;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        min-height: 300px;
+      }
+
+      .wallet-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 20px 0;
+        color: #111827;
+      }
+
+      .qr-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+      }
+
+      .qr-code {
+        width: 200px;
+        height: 200px;
+        border-radius: 8px;
+        background: white;
+        padding: 8px;
+      }
+
+      .qr-code img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .address-section {
+        margin-top: 20px;
+      }
+
+      .address-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .address-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+
+      .address-text {
+        font-family: monospace;
+        font-size: 0.875rem;
+        color: #111827;
+        word-break: break-all;
+        flex: 1;
+        text-align: center;
+      }
+
+      .copy-button {
+        background: #111bf5;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+
+      .copy-button:hover {
+        background: #0e16c4;
+      }
+
+      .copy-button:active {
+        background: #0c13a8;
+      }
+
+      .copy-button.copied {
+        background: #10b981;
+      }
+
+      .balance-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .balance-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+
+      .balance-amount {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .instructions {
+        margin-top: 20px;
+        padding: 16px;
+        background: #f0f9ff;
+        border-radius: 8px;
+        border-left: 4px solid #0ea5e9;
+      }
+
+      .instructions-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #0c4a6e;
+        margin: 0 0 8px 0;
+      }
+
+      .instructions-text {
+        font-size: 0.875rem;
+        color: #075985;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+      }
+
+      .error {
+        text-align: center;
+        padding: 20px;
+        color: #dc2626;
+        background: #fee2e2;
+        border-radius: 8px;
+        margin: 16px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="loading" class="loading">Loading wallet...</div>
+      <div id="error" class="error" style="display: none;"></div>
+      <div id="wallet-card" class="wallet-card" style="display: none;">
+        <h2 class="title">Fund Your Wallet</h2>
+        <div class="qr-container">
+          <div class="qr-code" id="qr-code">
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;">
+              Loading QR code...
+            </div>
+          </div>
+        </div>
+        <div class="address-section">
+          <div class="address-label">Wallet Address</div>
+          <div class="address-display">
+            <span class="address-text" id="address-text"></span>
+            <button class="copy-button" id="copy-button">Copy</button>
+          </div>
+        </div>
+        <div class="balance-section" id="balance-section" style="display: none;">
+          <div class="balance-label">Current Balance</div>
+          <div class="balance-amount" id="balance-amount"></div>
+        </div>
+        <div class="instructions">
+          <div class="instructions-title">How to fund</div>
+          <p class="instructions-text">
+            Scan the QR code or copy the address above. Send USDC on Base network to this address.
+            Your balance will update automatically once the transaction is confirmed.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      const walletCardEl = document.getElementById("wallet-card");
+      const loadingEl = document.getElementById("loading");
+      const errorEl = document.getElementById("error");
+      const qrCodeEl = document.getElementById("qr-code");
+      const addressTextEl = document.getElementById("address-text");
+      const copyButtonEl = document.getElementById("copy-button");
+      const balanceSectionEl = document.getElementById("balance-section");
+      const balanceAmountEl = document.getElementById("balance-amount");
+
+      let walletAddress = "";
+      let qrCodeDataUrl = "";
+
+      const render = () => {
+        if (!walletAddress) {
+          loadingEl.style.display = "block";
+          walletCardEl.style.display = "none";
+          return;
+        }
+
+        loadingEl.style.display = "none";
+        errorEl.style.display = "none";
+        walletCardEl.style.display = "block";
+
+        addressTextEl.textContent = walletAddress;
+
+        if (qrCodeDataUrl) {
+          qrCodeEl.innerHTML = `<img src="${qrCodeDataUrl}" alt="QR Code" />`;
+        } else {
+          qrCodeEl.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;">
+              QR code not available
+            </div>
+          `;
+        }
+      };
+
+      const updateFromResponse = (response) => {
+        const wallet = response?.structuredContent?.wallet;
+        const balance = response?.structuredContent?.balance;
+
+        if (wallet?.address) {
+          walletAddress = wallet.address;
+        }
+
+        if (response?.structuredContent?.qrCodeDataUrl) {
+          qrCodeDataUrl = response.structuredContent.qrCodeDataUrl;
+        }
+
+        if (balance) {
+          balanceSectionEl.style.display = "block";
+          const formatted = parseFloat(balance.balance || "0").toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 6,
+          });
+          balanceAmountEl.textContent = `${formatted} ${balance.symbol || "USDC"}`;
+        } else {
+          balanceSectionEl.style.display = "none";
+        }
+
+        render();
+      };
+
+      const handleSetGlobals = (event) => {
+        const globals = event.detail?.globals;
+        if (globals?.toolOutput) {
+          updateFromResponse({ structuredContent: globals.toolOutput });
+        }
+      };
+
+      copyButtonEl.addEventListener("click", async () => {
+        if (!walletAddress) return;
+
+        try {
+          await navigator.clipboard.writeText(walletAddress);
+          copyButtonEl.textContent = "Copied!";
+          copyButtonEl.classList.add("copied");
+          setTimeout(() => {
+            copyButtonEl.textContent = "Copy";
+            copyButtonEl.classList.remove("copied");
+          }, 2000);
+        } catch (err) {
+          console.error("Failed to copy:", err);
+          copyButtonEl.textContent = "Failed";
+          setTimeout(() => {
+            copyButtonEl.textContent = "Copy";
+          }, 2000);
+        }
+      });
+
+      // Initial load
+      if (window.openai?.toolOutput) {
+        updateFromResponse({ structuredContent: window.openai.toolOutput });
+      }
+
+      window.addEventListener("openai:set_globals", handleSetGlobals, {
+        passive: true,
+      });
+    </script>
+  </body>
+</html>
+

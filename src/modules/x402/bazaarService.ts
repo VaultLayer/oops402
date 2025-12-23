@@ -111,6 +111,7 @@ export interface QueryCachedResourcesResult {
   total: number;
   limit: number;
   offset: number;
+  promotedResourceUrls?: Set<string>; // Set of promoted resource URLs for UI to mark as "Promoted"
 }
 
 /**
@@ -375,15 +376,49 @@ export async function findResourcesByPayTo(
 
 /**
  * Query cached resources with filtering and pagination
+ * Includes promotion merging - promoted results appear first
  */
 export async function queryCachedResources(
-  params: QueryCachedResourcesParams = {}
+  params: QueryCachedResourcesParams = {},
+  sessionIdHash?: string // For tracking impressions
 ): Promise<QueryCachedResourcesResult> {
   const limit = params.limit ?? 50;
   const offset = params.offset ?? 0;
 
   try {
     const allResources = await loadCachedResources();
+
+    // Fetch active promotions for bazaar resources
+    // Note: We fetch ALL active promotions, not filtered by keyword, because
+    // we need to check if any of the filtered resources match those promotions.
+    // The keyword filtering should only apply to resources, not to promotions.
+    const { getActivePromotions } = await import('../promotions/service.js');
+    const { trackPromotedImpression } = await import('../analytics/service.js');
+    
+    const activePromotions = await getActivePromotions({
+      resourceType: 'bazaar',
+      // Don't filter by keyword here - we'll check promotion status after filtering resources
+      resourceUrl: params.resource, // Only filter by exact resource URL if provided
+    });
+
+    // Create a map of promoted resource URLs for quick lookup
+    const promotedResourceMap = new Map<string, string>(); // resource_url -> promotion_id
+    for (const promotion of activePromotions) {
+      promotedResourceMap.set(promotion.resource_url.toLowerCase(), promotion.id);
+    }
+
+    // Track impressions for promoted resources (if sessionIdHash provided)
+    if (sessionIdHash) {
+      for (const promotion of activePromotions) {
+        trackPromotedImpression({
+          promotion_id: promotion.id,
+          search_keyword: params.keyword || undefined,
+          session_id_hash: sessionIdHash,
+        }).catch((err) => {
+          logger.error('Failed to track promotion impression', err as Error);
+        });
+      }
+    }
 
     // Apply filters
     let filtered = allResources;
@@ -438,14 +473,40 @@ export async function queryCachedResources(
       });
     }
 
+    // Separate promoted and organic results
+    const promoted: DiscoveryResource[] = [];
+    const organic: DiscoveryResource[] = [];
+    const promotedUrls = new Set<string>();
+
+    for (const resource of filtered) {
+      const resourceUrlLower = resource.resource.toLowerCase();
+      if (promotedResourceMap.has(resourceUrlLower)) {
+        // Mark as promoted (add to promoted array)
+        promoted.push({
+          ...resource,
+          // We'll mark promoted in the result by checking if it's in the promoted array
+        });
+        promotedUrls.add(resourceUrlLower);
+      } else {
+        organic.push(resource);
+      }
+    }
+
+    // Merge: promoted first, then organic (excluding duplicates)
+    const organicFiltered = organic.filter(
+      (r) => !promotedUrls.has(r.resource.toLowerCase())
+    );
+    const merged = [...promoted, ...organicFiltered];
+
     // Apply pagination
-    const paginated = filtered.slice(offset, offset + limit);
+    const paginated = merged.slice(offset, offset + limit);
 
     return {
       items: paginated,
-      total: filtered.length,
+      total: merged.length,
       limit,
       offset,
+      promotedResourceUrls: promotedUrls, // Include promoted URLs set for UI
     };
   } catch (error) {
     logger.error('Failed to query cached bazaar resources', error as Error, {

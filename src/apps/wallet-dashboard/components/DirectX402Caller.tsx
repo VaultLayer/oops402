@@ -4,6 +4,7 @@ import { formatAmountDisplay } from "../utils/formatting";
 import { PaymentResult } from "../types";
 import { styles } from "../styles";
 import { checkAuthError } from "../utils/auth";
+import { PromoteModal } from "./PromoteModal";
 
 interface DirectX402CallerProps {
   walletAddress: string;
@@ -22,6 +23,7 @@ export function DirectX402Caller({ walletAddress, isOpen, onClose }: DirectX402C
   const [schema, setSchema] = useState<any>(null);
   const [result, setResult] = useState<PaymentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [promoteModalOpen, setPromoteModalOpen] = useState(false);
 
   const discoverSchema = async () => {
     if (!resourceUrl.trim()) {
@@ -229,6 +231,18 @@ export function DirectX402Caller({ walletAddress, isOpen, onClose }: DirectX402C
               <h3 style={styles.schemaTitle}>Payment Requirements</h3>
               {schema.hasX402Schema && schema.schema?.accepts ? (
                 <div style={styles.schemaContent}>
+                  <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={styles.successText}>
+                      ✓ Resource has valid x402 schema
+                    </div>
+                    <button
+                      onClick={() => setPromoteModalOpen(true)}
+                      style={styles.button}
+                      className="button"
+                    >
+                      Promote Resource
+                    </button>
+                  </div>
                   {Array.isArray(schema.schema.accepts) && schema.schema.accepts.length > 0 ? (
                     <div style={styles.acceptsList}>
                       {schema.schema.accepts.map((accept: any, index: number) => (
@@ -321,6 +335,14 @@ export function DirectX402Caller({ walletAddress, isOpen, onClose }: DirectX402C
           </div>
         </form>
       </div>
+      {promoteModalOpen && (
+        <PromoteModal
+          isOpen={promoteModalOpen}
+          onClose={() => setPromoteModalOpen(false)}
+          resourceUrl={resourceUrl.trim()}
+          resourceType="bazaar"
+        />
+      )}
     </div>
   );
 }

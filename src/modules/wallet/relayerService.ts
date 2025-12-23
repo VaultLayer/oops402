@@ -187,8 +187,8 @@ export async function sendERC20TransferViaRelayer(
       type: "function",
     },
     {
-      inputs: [{ name: "authorizer", type: "address" }],
-      name: "nonces",
+      inputs: [{ name: "account", type: "address" }],
+      name: "balanceOf",
       outputs: [{ name: "", type: "uint256" }],
       stateMutability: "view",
       type: "function",
@@ -197,9 +197,48 @@ export async function sendERC20TransferViaRelayer(
 
   const contract = new ethers.Contract(tokenAddress, USDC_ABI, provider);
 
-  // Get nonce for authorization
-  const nonceCount = await contract.nonces(config.pkpAddress);
-  const nonce = ethers.utils.hexZeroPad(ethers.utils.hexlify(nonceCount), 32);
+  // Check PKP wallet balance before attempting transfer
+  try {
+    const balance = await contract.balanceOf(config.pkpAddress);
+    logger.debug("PKP wallet balance check", {
+      pkpAddress: config.pkpAddress,
+      balance: balance.toString(),
+      amount: amount.toString(),
+      tokenAddress,
+    });
+    if (balance.lt(amount)) {
+      throw new Error(
+        `Insufficient USDC balance. PKP wallet ${config.pkpAddress} has ${ethers.utils.formatUnits(balance, 6)} USDC, but ${ethers.utils.formatUnits(amount, 6)} USDC is required.`
+      );
+    }
+  } catch (error) {
+    if ((error as Error).message.includes('Insufficient USDC balance')) {
+      throw error;
+    }
+    logger.warning("Failed to check PKP wallet balance, proceeding anyway", {
+      error: (error as Error).message,
+    });
+  }
+
+  // Generate nonce for authorization
+  // IMPORTANT: ERC-3009 uses bytes32 nonces, NOT sequential uint256 nonces
+  // USDC does NOT implement the nonces() function (that's ERC-2612/permit)
+  // 
+  // For ERC-3009, we must generate a unique bytes32 nonce for each transaction.
+  // The contract tracks used nonces in _authorizationStates[authorizer][nonce]
+  // to prevent replay attacks. Each nonce can only be used once per authorizer.
+  // 
+  // We generate a random 32-byte nonce. If it collides (extremely unlikely),
+  // the transaction will revert and we can retry with a new random nonce.
+  const nonceBytes32 = ethers.utils.hexlify(ethers.utils.randomBytes(32));
+  
+  logger.debug("Generated random nonce for authorization", {
+    pkpAddress: config.pkpAddress,
+    tokenAddress,
+    nonceHex: nonceBytes32,
+    authorizer: config.pkpAddress,
+    note: "ERC-3009 uses random bytes32 nonces, not sequential nonces. Contract will reject if nonce was already used.",
+  });
 
   // Set validity window (same as testDirectTransferWithAuthorization)
   const now = Math.floor(Date.now() / 1000);
@@ -210,7 +249,7 @@ export async function sendERC20TransferViaRelayer(
     from: config.pkpAddress,
     to,
     amount: amount.toString(),
-    nonce,
+    nonce: nonceBytes32,
     validAfter,
     validBefore,
   });
@@ -240,7 +279,7 @@ export async function sendERC20TransferViaRelayer(
     value: amount.toString(),
     validAfter: validAfter.toString(),
     validBefore: validBefore.toString(),
-    nonce,
+    nonce: nonceBytes32,
   };
 
   // Sign with PKP wallet (same approach as testDirectTransferWithAuthorization)
@@ -308,14 +347,19 @@ export async function sendERC20TransferViaRelayer(
     amount: amount.toString(),
   });
 
+  // Use explicit gas limit to avoid estimation issues when relayer wallet is low on funds
+  // transferWithAuthorization typically uses ~120k-150k gas, we'll use 200k as a safe buffer
+  const gasLimit = ethers.BigNumber.from(200000);
+
   const tx = await contractWithRelayer.transferWithAuthorization(
     config.pkpAddress, // from (PKP wallet)
     to,
     amount,
     validAfter,
     validBefore,
-    nonce,
-    packedSignature
+    nonceBytes32,
+    packedSignature,
+    { gasLimit } // Explicit gas limit to avoid estimation
   );
 
   logger.debug("Transaction sent by relayer", {
@@ -324,10 +368,219 @@ export async function sendERC20TransferViaRelayer(
     relayer: relayerWallet.address, // But relayer pays gas
   });
 
-  const receipt = await tx.wait();
+  let receipt;
+  try {
+    receipt = await tx.wait();
+  } catch (error: any) {
+    // tx.wait() throws when status is 0, but the receipt is in the error
+    if (error.receipt) {
+      receipt = error.receipt;
+    } else {
+      // If no receipt in error, try to get it manually
+      receipt = await provider.getTransactionReceipt(tx.hash);
+    }
+    
+    // If we still don't have a receipt, re-throw
+    if (!receipt) {
+      throw error;
+    }
+  }
 
   if (receipt.status !== 1) {
-    throw new Error(`Transaction reverted: ${receipt.transactionHash}`);
+    // Note: ERC-3009 doesn't have a nonces() function to check
+    // The contract tracks used nonces internally and will reject duplicates
+    // If the transaction failed, it could be due to:
+    // 1. Nonce already used (replay attack prevented)
+    // 2. Invalid signature
+    // 3. Insufficient balance
+    // 4. Authorization expired (validBefore)
+    // 5. Other revert reasons
+    
+    // Try to get the revert reason by calling callStatic on the contract
+    let revertReason = 'Unknown revert reason';
+    try {
+      // First try callStatic which should give us the actual revert reason
+      try {
+        await contractWithRelayer.callStatic.transferWithAuthorization(
+          config.pkpAddress,
+          to,
+          amount,
+          validAfter,
+          validBefore,
+          nonceBytes32,
+          packedSignature,
+          { blockTag: receipt.blockNumber }
+        );
+        // If callStatic succeeds, this shouldn't happen
+        revertReason = 'callStatic succeeded but transaction failed (unexpected)';
+        logger.warning('callStatic succeeded but transaction failed', {
+          txHash: receipt.transactionHash,
+          blockNumber: receipt.blockNumber.toString(),
+        });
+      } catch (staticError: any) {
+        const staticErrorMsg = staticError.message || staticError.toString();
+        logger.debug('callStatic failed with error', {
+          errorMsg: staticErrorMsg.substring(0, 500),
+          errorData: staticError.data,
+          errorReason: staticError.reason,
+        });
+        
+        // Try to extract revert reason from callStatic error
+        if (staticError.reason) {
+          revertReason = staticError.reason;
+        } else if (staticError.data) {
+          try {
+            const errorInterface = new ethers.utils.Interface([
+              "error Error(string message)"
+            ]);
+            const decoded = errorInterface.decodeErrorResult("Error", staticError.data);
+            revertReason = decoded.message;
+          } catch {
+            revertReason = staticErrorMsg.substring(0, 200);
+          }
+        } else {
+          revertReason = staticErrorMsg.substring(0, 200);
+        }
+      }
+    } catch (error: any) {
+      logger.warning('Failed to get revert reason from callStatic', {
+        error: error.message || error.toString(),
+      });
+      
+      // Fallback to provider.call simulation (only if callStatic didn't set revertReason)
+      if (revertReason === 'Unknown revert reason') {
+        try {
+          // Use provider.call to simulate the transaction and get revert reason
+          const txData = contractWithRelayer.interface.encodeFunctionData('transferWithAuthorization', [
+            config.pkpAddress,
+            to,
+            amount,
+            validAfter,
+            validBefore,
+            nonceBytes32,
+            packedSignature,
+          ]);
+          
+          logger.debug('Attempting to extract revert reason via simulation', {
+            txHash: receipt.transactionHash,
+            blockNumber: receipt.blockNumber.toString(),
+          });
+          
+          try {
+            // Try simulating at the exact block where the transaction was mined
+            // This should match the state when the transaction executed
+            try {
+              // Use the PKP address as 'from' since that's who signed the authorization
+              await provider.call({
+                to: tokenAddress,
+                data: txData,
+                from: config.pkpAddress, // Use PKP address, not relayer address
+              }, receipt.blockNumber);
+              // If call succeeds at the same block, something else is wrong
+              revertReason = 'Simulated call succeeded at same block but transaction failed (signature or nonce issue)';
+              logger.warning('Simulation succeeded at same block but transaction failed', {
+                txHash: receipt.transactionHash,
+                blockNumber: receipt.blockNumber.toString(),
+              });
+            } catch (blockError: any) {
+              // Try at the block before
+              try {
+                // Use the PKP address as 'from' since that's who signed the authorization
+                await provider.call({
+                  to: tokenAddress,
+                  data: txData,
+                  from: config.pkpAddress, // Use PKP address, not relayer address
+                }, receipt.blockNumber - 1);
+                revertReason = `Simulated call succeeded at previous block but transaction failed. This suggests the nonce may have been consumed by a concurrent transaction or there was a state change between blocks.`;
+                logger.warning('Simulation succeeded at previous block but transaction failed - nonce may have been consumed or state changed', {
+                  txHash: receipt.transactionHash,
+                  blockNumber: (receipt.blockNumber - 1).toString(),
+                  nonce: nonceBytes32,
+                });
+              } catch (prevBlockError: any) {
+                // Both failed, use the error from the actual block
+                throw blockError;
+              }
+            }
+          } catch (callError: any) {
+            // Extract revert reason from the error
+            const errorMsg = callError.message || callError.toString();
+            logger.debug('Simulation call failed with error', {
+              errorMsg: errorMsg.substring(0, 500),
+              errorType: callError.constructor?.name,
+              errorData: callError.data,
+              errorCode: callError.code,
+            });
+            
+            // Try to decode revert reason from error data
+            let decodedReason: string | null = null;
+            const errorData = callError?.data || callError?.error?.data;
+            if (errorData && typeof errorData === 'string' && errorData.startsWith('0x')) {
+              try {
+                const errorInterface = new ethers.utils.Interface([
+                  "error Error(string message)"
+                ]);
+                const decoded = errorInterface.decodeErrorResult("Error", errorData);
+                decodedReason = decoded.message;
+                logger.debug('Decoded revert reason from error data', {
+                  revertReason: decodedReason,
+                });
+              } catch (decodeError) {
+                logger.debug('Failed to decode error data', {
+                  error: (decodeError as Error).message,
+                });
+              }
+            }
+            
+            // Use decoded reason or try to extract from error message
+            if (decodedReason) {
+              revertReason = decodedReason;
+            } else {
+              const revertMatch = errorMsg.match(/revert\s+(.+)/i) || errorMsg.match(/reverted\s+(.+)/i);
+              if (revertMatch) {
+                revertReason = revertMatch[1];
+              } else if (errorMsg.includes('insufficient balance') || errorMsg.includes('INSUFFICIENT_BALANCE')) {
+                revertReason = 'Insufficient balance in PKP wallet';
+              } else if (errorMsg.includes('invalid signature') || errorMsg.includes('INVALID_SIGNATURE')) {
+                revertReason = 'Invalid signature';
+              } else if (errorMsg.includes('nonce') || errorMsg.includes('NONCE')) {
+                revertReason = 'Nonce already used or invalid';
+              } else if (errorMsg.includes('expired') || errorMsg.includes('EXPIRED')) {
+                revertReason = 'Authorization expired or not yet valid';
+              } else {
+                revertReason = errorMsg.substring(0, 200); // Limit length
+              }
+            }
+          }
+        } catch (simulationError: any) {
+          logger.warning('Failed to extract revert reason from simulation', {
+            error: simulationError.message || simulationError.toString(),
+          });
+          if (revertReason === 'Unknown revert reason') {
+            revertReason = `Failed to extract revert reason: ${simulationError.message || simulationError.toString()}`;
+          }
+        }
+      }
+    }
+    
+    const errorMessage = `Transaction reverted: ${receipt.transactionHash}. Reason: ${revertReason}. Gas used: ${receipt.gasUsed.toString()} (may indicate early revert). Check that PKP wallet ${config.pkpAddress} has sufficient USDC balance (${ethers.utils.formatUnits(amount, 6)} USDC required).`;
+  const error = new Error(errorMessage);
+    
+    logger.error('Transaction reverted', error, {
+      txHash: receipt.transactionHash,
+      gasUsed: receipt.gasUsed.toString(),
+      revertReason,
+      from: config.pkpAddress,
+      to,
+      amount: amount.toString(),
+      amountFormatted: ethers.utils.formatUnits(amount, 6),
+      nonce: nonceBytes32,
+      validAfter,
+      validBefore,
+      currentTime: Math.floor(Date.now() / 1000),
+    });
+    
+    throw error;
   }
 
   logger.debug("Transaction confirmed", {

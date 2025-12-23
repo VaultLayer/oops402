@@ -22,6 +22,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { z } from "zod/v4";
+import QRCode from "qrcode";
 import { getPKPsForAuthMethod, mintPKP, getPkpSessionSigs, type PKP, PKPAccount } from "../../wallet/index.js";
 import { getBalances, transferToken } from "../../wallet/chainService.js";
 import { searchAgents, searchAgentsByReputation, getAgent } from "../../agents/service.js";
@@ -90,6 +91,29 @@ function formatAmountDisplay(amount: string, decimals: number = USDC_DECIMALS): 
 const toJsonSchema = (schema: z.ZodType<any>): ToolInput => {
   return z.toJSONSchema(schema) as ToolInput;
 };
+
+/**
+ * Generate QR code data URL for a wallet address
+ * @param address - Wallet address to encode
+ * @param size - QR code size in pixels (default: 200)
+ * @returns Data URL string for the QR code image
+ */
+async function generateQRCodeDataUrl(address: string, size: number = 200): Promise<string> {
+  try {
+    const dataUrl = await QRCode.toDataURL(address, {
+      width: size,
+      margin: 2,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
+    return dataUrl;
+  } catch (error) {
+    logger.error("Failed to generate QR code", error as Error);
+    return "";
+  }
+}
 
 /* Input schemas for tools implemented in this server */
 const WalletGetSchema = z.object({});
@@ -200,7 +224,7 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
     {
       capabilities: {
         // prompts: {}, // Placeholder - not currently used
-        // resources: { subscribe: true }, // Placeholder - not currently used
+        resources: { subscribe: false }, // Widget resources for ChatGPT UI
         tools: {},
         // logging: {}, // Placeholder - not currently used
         // completions: {}, // Placeholder - not currently used
@@ -286,7 +310,118 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
 
   // const PAGE_SIZE = 10;
 
-  // Placeholder resource handlers - not currently used
+  // Widget resources for ChatGPT UI
+  const WIDGET_RESOURCES: Resource[] = [
+    {
+      uri: "ui://widget/agents.html",
+      name: "Agents Carousel",
+      description: "Interactive carousel displaying discovered x402 agents",
+      mimeType: "text/html+skybridge",
+    },
+    {
+      uri: "ui://widget/bazaar.html",
+      name: "Bazaar Resources",
+      description: "List of x402-protected resources with payment options",
+      mimeType: "text/html+skybridge",
+    },
+    {
+      uri: "ui://widget/wallet-fund.html",
+      name: "Wallet Funding",
+      description: "QR code and address for funding x402 wallet",
+      mimeType: "text/html+skybridge",
+    },
+  ];
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    return {
+      resources: WIDGET_RESOURCES,
+    };
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const uri = request.params.uri;
+
+    // Helper to resolve widget file path (works in both dev and production)
+    const getWidgetPath = async (filename: string): Promise<string> => {
+      // Try dist first (production), then src (development)
+      const distPath = path.join(process.cwd(), "dist/modules/mcp/static", filename);
+      const srcPath = path.join(process.cwd(), "src/modules/mcp/static", filename);
+      
+      // Check if dist exists (production build)
+      try {
+        await fs.access(distPath);
+        return distPath;
+      } catch {
+        // Fallback to src path
+        return srcPath;
+      }
+    };
+
+    // Serve widget HTML files
+    if (uri === "ui://widget/agents.html") {
+      const filePath = await getWidgetPath("agents-widget.html");
+      try {
+        const html = await fs.readFile(filePath, "utf-8");
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: "text/html+skybridge",
+              text: html,
+              _meta: { "openai/widgetPrefersBorder": true },
+            },
+          ],
+        };
+      } catch (error) {
+        logger.error("Failed to read agents widget", error as Error);
+        throw new Error(`Failed to load widget: ${uri}`);
+      }
+    }
+
+    if (uri === "ui://widget/bazaar.html") {
+      const filePath = await getWidgetPath("bazaar-widget.html");
+      try {
+        const html = await fs.readFile(filePath, "utf-8");
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: "text/html+skybridge",
+              text: html,
+              _meta: { "openai/widgetPrefersBorder": true },
+            },
+          ],
+        };
+      } catch (error) {
+        logger.error("Failed to read bazaar widget", error as Error);
+        throw new Error(`Failed to load widget: ${uri}`);
+      }
+    }
+
+    if (uri === "ui://widget/wallet-fund.html") {
+      const filePath = await getWidgetPath("wallet-fund-widget.html");
+      try {
+        const html = await fs.readFile(filePath, "utf-8");
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: "text/html+skybridge",
+              text: html,
+              _meta: { "openai/widgetPrefersBorder": true },
+            },
+          ],
+        };
+      } catch (error) {
+        logger.error("Failed to read wallet-fund widget", error as Error);
+        throw new Error(`Failed to load widget: ${uri}`);
+      }
+    }
+
+    throw new Error(`Unknown resource: ${uri}`);
+  });
+
+  // Placeholder resource handlers - not currently used (old test resources)
   // server.setRequestHandler(ListResourcesRequestSchema, async (request) => {
   //   const cursor = request.params?.cursor;
   //   let startIndex = 0;
@@ -633,6 +768,9 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
           pkp = pkps[0];
         }
         
+        // Generate QR code for wallet address
+        const qrCodeDataUrl = await generateQRCodeDataUrl(pkp.ethAddress);
+        
         return {
           content: [
             {
@@ -648,6 +786,19 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
               }, null, 2),
             },
           ],
+          structuredContent: {
+            wallet: {
+              address: pkp.ethAddress,
+              publicKey: pkp.publicKey,
+              tokenId: pkp.tokenId,
+            },
+            qrCodeDataUrl,
+          },
+          _meta: {
+            "openai/outputTemplate": "ui://widget/wallet-fund.html",
+            "openai/toolInvocation/invoking": "Getting wallet...",
+            "openai/toolInvocation/invoked": "Wallet ready",
+          },
         };
       } catch (error) {
         logger.error("Failed to get or create wallet", error as Error);
@@ -702,32 +853,42 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
           logger.debug("Discovering agents by reputation", reputationParams);
           const result = await searchAgentsByReputation(reputationParams);
           
+          const agents = result.items.map(agent => ({
+            agentId: agent.agentId,
+            chainId: agent.chainId,
+            name: agent.name,
+            description: agent.description,
+            image: agent.image,
+            mcpTools: agent.mcpTools,
+            a2aSkills: agent.a2aSkills,
+            active: agent.active,
+            owners: agent.owners,
+            operators: agent.operators,
+            walletAddress: agent.walletAddress,
+            averageScore: (agent as any).extras?.averageScore,
+          }));
+          
           return {
             content: [
               {
                 type: "text",
                 text: JSON.stringify({
                   success: true,
-                  agents: result.items.map(agent => ({
-                    agentId: agent.agentId,
-                    chainId: agent.chainId,
-                    name: agent.name,
-                    description: agent.description,
-                    image: agent.image,
-                    mcpTools: agent.mcpTools,
-                    a2aSkills: agent.a2aSkills,
-                    active: agent.active,
-                    owners: agent.owners,
-                    operators: agent.operators,
-                    walletAddress: agent.walletAddress,
-                    averageScore: (agent as any).extras?.averageScore,
-                  })),
+                  agents,
                   nextCursor: result.nextCursor,
                   meta: result.meta,
                   total: result.items.length,
                 }, null, 2),
               },
             ],
+            structuredContent: {
+              agents,
+            },
+            _meta: {
+              "openai/outputTemplate": "ui://widget/agents.html",
+              "openai/toolInvocation/invoking": "Searching agents...",
+              "openai/toolInvocation/invoked": "Found agents",
+            },
           };
         } else {
           // Regular search
@@ -779,7 +940,23 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
           }
           
           logger.debug("Discovering agents", searchParams);
-          const result = await searchAgents(searchParams);
+          const result = await searchAgents(searchParams, undefined); // No sessionIdHash in MCP context
+          
+          const agents = result.items.map(agent => ({
+            agentId: agent.agentId,
+            chainId: agent.chainId,
+            name: agent.name,
+            description: agent.description,
+            image: agent.image,
+            mcpTools: agent.mcpTools,
+            a2aSkills: agent.a2aSkills,
+            active: agent.active,
+            owners: agent.owners,
+            operators: agent.operators,
+            walletAddress: agent.walletAddress,
+            // Note: promoted flag would need to be determined from promotions service
+            // For now, promotions are merged but not explicitly marked in MCP response
+          }));
           
           return {
             content: [
@@ -787,25 +964,21 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
                 type: "text",
                 text: JSON.stringify({
                   success: true,
-                  agents: result.items.map(agent => ({
-                    agentId: agent.agentId,
-                    chainId: agent.chainId,
-                    name: agent.name,
-                    description: agent.description,
-                    image: agent.image,
-                    mcpTools: agent.mcpTools,
-                    a2aSkills: agent.a2aSkills,
-                    active: agent.active,
-                    owners: agent.owners,
-                    operators: agent.operators,
-                    walletAddress: agent.walletAddress,
-                  })),
+                  agents,
                   nextCursor: result.nextCursor,
                   meta: result.meta,
                   total: result.items.length,
                 }, null, 2),
               },
             ],
+            structuredContent: {
+              agents,
+            },
+            _meta: {
+              "openai/outputTemplate": "ui://widget/agents.html",
+              "openai/toolInvocation/invoking": "Searching agents...",
+              "openai/toolInvocation/invoked": "Found agents",
+            },
           };
         }
       } catch (error) {
@@ -1138,7 +1311,7 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
       try {
         const validatedArgs = DiscoverBazaarResourcesSchema.parse(args);
         
-        logger.debug("Discovering bazaar resources", validatedArgs);
+          logger.debug("Discovering bazaar resources", validatedArgs);
         const result = await queryCachedResources({
           type: validatedArgs.type,
           resource: validatedArgs.resource,
@@ -1146,7 +1319,25 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
           limit: validatedArgs.limit,
           offset: validatedArgs.offset,
           sortBy: validatedArgs.sortBy,
-        });
+        }, undefined); // No sessionIdHash in MCP context
+        
+        const promotedUrls = result.promotedResourceUrls || new Set<string>();
+        
+        const resources = result.items.map(resource => ({
+          resource: resource.resource,
+          type: resource.type,
+          lastUpdated: resource.lastUpdated,
+          promoted: promotedUrls.has(resource.resource.toLowerCase()), // Mark promoted items
+          accepts: resource.accepts.map(accept => ({
+            asset: accept.asset,
+            network: accept.network,
+            scheme: accept.scheme,
+            maxAmountRequired: accept.maxAmountRequired,
+            maxAmountRequiredFormatted: formatAmountDisplay(accept.maxAmountRequired),
+            description: accept.description,
+          })),
+          x402Version: resource.x402Version,
+        }));
         
         return {
           content: [
@@ -1164,20 +1355,7 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
                     scheme: "'erc20' = token payment, 'native' = blockchain currency"
                   }
                 },
-                resources: result.items.map(resource => ({
-                  resource: resource.resource,
-                  type: resource.type,
-                  lastUpdated: resource.lastUpdated,
-                  accepts: resource.accepts.map(accept => ({
-                    asset: accept.asset,
-                    network: accept.network,
-                    scheme: accept.scheme,
-                    maxAmountRequired: accept.maxAmountRequired,
-                    maxAmountRequiredFormatted: formatAmountDisplay(accept.maxAmountRequired),
-                    description: accept.description,
-                  })),
-                  x402Version: resource.x402Version,
-                })),
+                resources,
                 pagination: {
                   total: result.total,
                   limit: result.limit,
@@ -1186,6 +1364,14 @@ export const createMcpServer = (sessionId?: string): McpServerWrapper => {
               }, null, 2),
             },
           ],
+          structuredContent: {
+            resources,
+          },
+          _meta: {
+            "openai/outputTemplate": "ui://widget/bazaar.html",
+            "openai/toolInvocation/invoking": "Searching bazaar resources...",
+            "openai/toolInvocation/invoked": "Found resources",
+          },
         };
       } catch (error) {
         logger.error("Bazaar resource discovery failed", error as Error);

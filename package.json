@@ -12,7 +12,7 @@
     "build": "tsc && npm run copy-static && npm run build:apps",
     "build:apps": "INPUT=src/apps/wallet-dashboard/index.html vite build",
     "watch:apps": "INPUT=src/apps/wallet-dashboard/index.html vite build --watch",
-    "copy-static": "mkdir -p dist/static dist/modules/auth/static && cp -r src/static/* dist/static/ 2>/dev/null || true && cp src/modules/auth/static/mcp.png dist/modules/auth/static/ 2>/dev/null || true",
+    "copy-static": "mkdir -p dist/static dist/modules/auth/static dist/modules/mcp/static && cp -r src/static/* dist/static/ 2>/dev/null || true && cp src/modules/auth/static/mcp.png dist/modules/auth/static/ 2>/dev/null || true && cp -r src/modules/mcp/static/* dist/modules/mcp/static/ 2>/dev/null || true",
     "start": "node dist/index.js",
     "start:internal": "AUTH_MODE=internal npm start",
     "start:external": "concurrently \"AUTH_MODE=auth_server PORT=3001 BASE_URI=http://localhost:3001 node dist/index.js\" \"sleep 3 && AUTH_MODE=external AUTH_SERVER_URL=http://localhost:3001 node dist/index.js\"",
@@ -59,6 +59,7 @@
     "qrcode": "^1.5.4",
     "raw-body": "^3.0.0",
     "react": "^19.2.1",
+    "@supabase/supabase-js": "^2.47.10",
     "react-dom": "^19.2.1",
     "viem": "^2.38.6",
     "zod": "^3.25.76"

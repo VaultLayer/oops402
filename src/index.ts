@@ -409,6 +409,35 @@ async function main() {
           const { type, resource, keyword, limit, offset, sortBy } = req.query;
           
           logger.debug('Discovering bazaar resources', { type, resource, keyword, limit, offset, sortBy });
+          
+          // Get session ID for analytics (hash it for privacy)
+          // Use sessionID if available, otherwise use userId + timestamp as fallback
+          const { hashSessionId } = await import('./modules/shared/supabase.js');
+          let sessionIdHash: string | undefined;
+          
+          if (req.sessionID) {
+            sessionIdHash = hashSessionId(req.sessionID);
+          } else {
+            // Fallback: use userId + current hour for session-like tracking
+            // This allows tracking even when express-session isn't available
+            const userId = getUserId(req);
+            if (userId) {
+              // Use userId + hour timestamp to create a session-like identifier
+              // This groups searches by user within the same hour
+              const hourTimestamp = Math.floor(Date.now() / (1000 * 60 * 60)); // Hours since epoch
+              const sessionLikeId = `${userId}-${hourTimestamp}`;
+              sessionIdHash = hashSessionId(sessionLikeId);
+            }
+          }
+          
+          logger.debug('Search tracking check', {
+            hasSessionID: !!req.sessionID,
+            hasUserId: !!getUserId(req),
+            hasSessionIdHash: !!sessionIdHash,
+            hasKeyword: !!keyword,
+            keyword: keyword as string,
+          });
+          
           const result = await queryCachedResources({
             type: type as string | undefined,
             resource: resource as string | undefined,
@@ -416,7 +445,35 @@ async function main() {
             limit: limit ? Number(limit) : undefined,
             offset: offset ? Number(offset) : undefined,
             sortBy: sortBy === 'price_asc' || sortBy === 'price_desc' ? sortBy as 'price_asc' | 'price_desc' : undefined,
-          });
+          }, sessionIdHash);
+          
+          // Track search analytics (async, don't block)
+          if (sessionIdHash && keyword) {
+            logger.debug('Attempting to track search', {
+              keyword: keyword as string,
+              result_count: result.total,
+              sessionIdHashPrefix: sessionIdHash.substring(0, 8) + '...',
+            });
+            const { trackSearch } = await import('./modules/analytics/service.js');
+            trackSearch({
+              keyword: keyword as string,
+              result_count: result.total,
+              session_id_hash: sessionIdHash,
+            }).catch((err) => {
+              logger.error('Failed to track search in endpoint', err as Error, {
+                keyword: keyword as string,
+                sessionIdHash: sessionIdHash.substring(0, 8) + '...',
+              });
+            });
+          } else {
+            logger.debug('Skipping search tracking', {
+              reason: !sessionIdHash ? 'no sessionIdHash' : 'no keyword',
+              hasSessionIdHash: !!sessionIdHash,
+              hasKeyword: !!keyword,
+            });
+          }
+          
+          const promotedUrls = result.promotedResourceUrls || new Set<string>();
           
           res.json({
             success: true,
@@ -425,6 +482,7 @@ async function main() {
               resource: resource.resource,
               type: resource.type,
               lastUpdated: resource.lastUpdated,
+              promoted: promotedUrls.has(resource.resource.toLowerCase()), // Mark promoted items
               accepts: resource.accepts.map(accept => ({
                 asset: accept.asset,
                 network: accept.network,
@@ -581,7 +639,38 @@ async function main() {
             }
           
           logger.debug('Discovering agents', searchParams);
-          const result = await searchAgents(searchParams);
+          
+          // Get session ID for analytics (hash it for privacy)
+          // Use sessionID if available, otherwise use userId + timestamp as fallback
+          const { hashSessionId } = await import('./modules/shared/supabase.js');
+          let sessionIdHash: string | undefined;
+          
+          if (req.sessionID) {
+            sessionIdHash = hashSessionId(req.sessionID);
+          } else {
+            // Fallback: use userId + current hour for session-like tracking
+            const userId = getUserId(req);
+            if (userId) {
+              const hourTimestamp = Math.floor(Date.now() / (1000 * 60 * 60)); // Hours since epoch
+              const sessionLikeId = `${userId}-${hourTimestamp}`;
+              sessionIdHash = hashSessionId(sessionLikeId);
+            }
+          }
+          
+          const result = await searchAgents(searchParams, sessionIdHash);
+          
+          // Track search analytics (async, don't block)
+          if (sessionIdHash && (name || Object.keys(searchParams).length > 1)) {
+            const { trackSearch } = await import('./modules/analytics/service.js');
+            const searchKeyword = name as string || 'agents';
+            trackSearch({
+              keyword: searchKeyword,
+              result_count: result.items.length,
+              session_id_hash: sessionIdHash,
+            }).catch((err) => {
+              logger.error('Failed to track agent search', err as Error);
+            });
+          }
           
           res.json({
             success: true,
@@ -608,6 +697,204 @@ async function main() {
         }
       });
 
+      // Promotion endpoints
+      app.post('/api/promotions/create', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const userId = getUserId(req);
+          const { resourceUrl, agentId, days, paymentTxHash, resourceType } = req.body;
+          
+          if (!resourceUrl || !days || !paymentTxHash) {
+            return res.status(400).json({ error: 'Missing required fields: resourceUrl, days, paymentTxHash' });
+          }
+
+          if (!Number.isInteger(days) || days < 1) {
+            return res.status(400).json({ error: 'Days must be a positive integer' });
+          }
+
+          if (!userId) {
+            return res.status(401).json({ error: 'User ID not found' });
+          }
+
+          // Get user's wallet address for promoted_by_wallet
+          const pkps = await getPKPsForAuthMethod(userId);
+          if (pkps.length === 0) {
+            return res.status(400).json({ error: 'No wallet found. Please create a wallet first.' });
+          }
+
+          const { createPromotion } = await import('./modules/promotions/service.js');
+          const promotion = await createPromotion({
+            resourceUrl,
+            agentId,
+            promotedByWallet: pkps[0].ethAddress,
+            days: Number(days),
+            paymentTxHash,
+            resourceType: resourceType || (agentId ? 'agent' : 'bazaar'),
+          });
+
+          res.json({ success: true, promotion });
+        } catch (error) {
+          logger.error('Failed to create promotion', error as Error);
+          res.status(500).json({ error: 'Failed to create promotion', message: (error as Error).message });
+        }
+      });
+
+      // Get promotion fee configuration
+      app.get('/api/promotions/fee-config', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const { config } = await import('./config.js');
+          res.json({
+            success: true,
+            feePerDay: config.promotion.feePerDay,
+            paymentRecipient: config.promotion.paymentRecipient,
+            chainId: config.promotion.chainId || 8453,
+            currency: 'USDC',
+            decimals: 6, // USDC decimals
+          });
+        } catch (error) {
+          logger.error('Failed to get promotion fee config', error as Error);
+          res.status(500).json({ error: 'Failed to get fee config' });
+        }
+      });
+
+      app.get('/api/promotions/my', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const userId = getUserId(req);
+          if (!userId) {
+            return res.status(401).json({ error: 'User ID not found' });
+          }
+
+          // Get user's wallet address
+          const pkps = await getPKPsForAuthMethod(userId);
+          if (pkps.length === 0) {
+            return res.json({ success: true, promotions: [] });
+          }
+
+          const { getPromotionsByWallet, getPromotionAnalytics } = await import('./modules/promotions/service.js');
+          const promotions = await getPromotionsByWallet(pkps[0].ethAddress, true); // Include inactive
+
+          // Get summary stats for each promotion
+          const promotionsWithStats = await Promise.all(
+            promotions.map(async (promotion) => {
+              const analytics = await getPromotionAnalytics(promotion.id);
+              return {
+                ...promotion,
+                stats: {
+                  clicks: analytics.clicks,
+                  impressions: analytics.impressions,
+                  ctr: analytics.ctr,
+                  payments_received: analytics.payments_received,
+                  revenue: analytics.payment_volume,
+                },
+              };
+            })
+          );
+
+          res.json({ success: true, promotions: promotionsWithStats });
+        } catch (error) {
+          logger.error('Failed to get my promotions', error as Error);
+          res.status(500).json({ error: 'Failed to get promotions', message: (error as Error).message });
+        }
+      });
+
+      app.get('/api/promotions/analytics/:id', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const { id } = req.params;
+          const { getPromotionAnalytics, getPromotionById } = await import('./modules/promotions/service.js');
+          
+          const promotion = await getPromotionById(id);
+          if (!promotion) {
+            return res.status(404).json({ error: 'Promotion not found' });
+          }
+
+          const analytics = await getPromotionAnalytics(id);
+          res.json({ success: true, promotion, analytics });
+        } catch (error) {
+          logger.error('Failed to get promotion analytics', error as Error);
+          res.status(500).json({ error: 'Failed to get analytics', message: (error as Error).message });
+        }
+      });
+
+      // Analytics endpoints
+      app.get('/api/analytics/keywords', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const timeframeDays = req.query.timeframe ? Number(req.query.timeframe) : undefined;
+          const limit = req.query.limit ? Number(req.query.limit) : 10;
+          
+          const { getTopKeywords } = await import('./modules/analytics/service.js');
+          const keywords = await getTopKeywords(limit, timeframeDays);
+          
+          res.json({ success: true, keywords });
+        } catch (error) {
+          logger.error('Failed to get top keywords', error as Error);
+          res.status(500).json({ error: 'Failed to get keywords', message: (error as Error).message });
+        }
+      });
+
+      app.get('/api/analytics/popular-tools', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const timeframeDays = req.query.timeframe ? Number(req.query.timeframe) : undefined;
+          const limit = req.query.limit ? Number(req.query.limit) : 10;
+          
+          const { getPopularTools } = await import('./modules/analytics/service.js');
+          const tools = await getPopularTools(limit, timeframeDays);
+          
+          res.json({ success: true, tools });
+        } catch (error) {
+          logger.error('Failed to get popular tools', error as Error);
+          res.status(500).json({ error: 'Failed to get popular tools', message: (error as Error).message });
+        }
+      });
+
+      app.get('/api/analytics/payment-stats', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const timeframeDays = req.query.timeframe ? Number(req.query.timeframe) : undefined;
+          
+          const { getPaymentStats } = await import('./modules/analytics/service.js');
+          const stats = await getPaymentStats(timeframeDays);
+          
+          res.json({ success: true, stats });
+        } catch (error) {
+          logger.error('Failed to get payment stats', error as Error);
+          res.status(500).json({ error: 'Failed to get payment stats', message: (error as Error).message });
+        }
+      });
+
+      app.get('/api/analytics/my-promotions-performance', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
+        try {
+          const userId = getUserId(req);
+          if (!userId) {
+            return res.status(401).json({ error: 'User ID not found' });
+          }
+
+          const timeframeDays = req.query.timeframe ? Number(req.query.timeframe) : undefined;
+
+          // Get user's wallet address
+          const pkps = await getPKPsForAuthMethod(userId);
+          if (pkps.length === 0) {
+            return res.json({
+              success: true,
+              performance: {
+                total_clicks: 0,
+                total_impressions: 0,
+                average_ctr: 0,
+                total_payments_received: 0,
+                total_revenue: '0',
+                average_conversion_rate: 0,
+                top_performing_promotions: [],
+              },
+            });
+          }
+
+          const { getMyPromotionsPerformance } = await import('./modules/analytics/service.js');
+          const performance = await getMyPromotionsPerformance(pkps[0].ethAddress, timeframeDays);
+          
+          res.json({ success: true, performance });
+        } catch (error) {
+          logger.error('Failed to get my promotions performance', error as Error);
+          res.status(500).json({ error: 'Failed to get performance', message: (error as Error).message });
+        }
+      });
+
       // Discover x402 schema from a URL
       app.post('/api/discover/schema', walletApiLimiter, webAuth.requiresAuth, async (req, res) => {
         try {
@@ -617,53 +904,18 @@ async function main() {
             return res.status(400).json({ error: 'Missing required field: url' });
           }
 
-          // Make a request without payment to discover the schema
-          // x402 resources typically return payment requirements in response headers/body
-          logger.debug('Discovering x402 schema', { url, method });
-          const response = await fetch(url, {
-            method: method as string,
-            headers: {
-              'Accept': 'application/json',
-            },
-          });
-
-          // Try to parse response as JSON (x402 schema is typically in JSON format)
-          let schemaData: any = null;
-          const contentType = response.headers.get('content-type');
-          if (contentType?.includes('application/json')) {
-            try {
-              schemaData = await response.json();
-            } catch (e) {
-              // If JSON parsing fails, try to get text
-              schemaData = { raw: await response.text() };
-            }
-          } else {
-            schemaData = { raw: await response.text() };
-          }
-
-          // Extract x402 headers if present
-          const x402Headers: Record<string, string> = {};
-          response.headers.forEach((value, key) => {
-            if (key.toLowerCase().startsWith('x-x402-') || key.toLowerCase().startsWith('x-402-')) {
-              x402Headers[key] = value;
-            }
-          });
-
-          // Check if response contains x402 schema (has accepts array or x402Version)
-          const hasX402Schema = schemaData && (
-            schemaData.accepts ||
-            schemaData.x402Version !== undefined ||
-            Object.keys(x402Headers).length > 0
-          );
+          // Use shared validation function
+          const { validateX402Resource } = await import('./modules/x402/schemaValidation.js');
+          const validation = await validateX402Resource(url, method);
 
           res.json({
             success: true,
-            status: response.status,
+            status: validation.status,
             url,
-            hasX402Schema,
-            schema: schemaData,
-            headers: x402Headers,
-            contentType,
+            hasX402Schema: validation.hasX402Schema,
+            schema: validation.schema,
+            headers: validation.headers,
+            contentType: validation.contentType,
           });
         } catch (error) {
           logger.error('Schema discovery failed', error as Error);
@@ -733,6 +985,43 @@ async function main() {
             data = await response.json();
           } else {
             data = await response.text();
+          }
+          
+          // Track payment for analytics (async, don't block response)
+          if (paymentResponse && response.ok && paymentResponse.transactionHash) {
+            // Import analytics service
+            const { trackPayment, linkPaymentToPromotion } = await import('./modules/analytics/service.js');
+            const { hasActivePromotion } = await import('./modules/promotions/service.js');
+            
+            // Extract network and asset - try from payment response, fall back to defaults
+            // Most x402 payments use USDC on Base network
+            const network = paymentResponse.network || 'base';
+            const asset = paymentResponse.asset || '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // USDC on Base
+            const payerWallet = paymentResponse.from || pkp.ethAddress;
+            const amount = paymentResponse.value?.toString() || '0';
+            
+            // Track the payment
+            trackPayment({
+              payer_wallet: payerWallet,
+              resource_url: resourceUrl,
+              amount,
+              tx_hash: paymentResponse.transactionHash,
+              network,
+              asset,
+            }).then((paymentId) => {
+              // If payment was tracked and resource has active promotion, link them
+              if (paymentId) {
+                hasActivePromotion(resourceUrl).then((promotion) => {
+                  if (promotion) {
+                    linkPaymentToPromotion(promotion.id, paymentId);
+                  }
+                }).catch((err) => {
+                  logger.error('Failed to check/link promotion', err as Error);
+                });
+              }
+            }).catch((err) => {
+              logger.error('Failed to track payment', err as Error);
+            });
           }
           
           res.json({

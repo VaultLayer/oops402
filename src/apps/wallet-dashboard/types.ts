@@ -24,6 +24,7 @@ export interface DiscoveryItem {
   type: string;
   resource: string;
   x402Version: number;
+  promoted?: boolean; // Indicates if this resource is promoted
   accepts: Array<{
     scheme: string;
     description: string;

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Resources</title>
+    <style>
+      :root {
+        color: #0b0b0f;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        padding: 16px;
+        background: transparent;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 100%;
+        min-height: 200px;
+      }
+
+      .resource-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .resource-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.2s;
+      }
+
+      .resource-card:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .resource-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        gap: 12px;
+      }
+
+      .resource-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .resource-url {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 4px 0;
+        word-break: break-all;
+      }
+
+      .resource-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+      }
+
+      .resource-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: #f3f4f6;
+        color: #374151;
+        font-weight: 500;
+      }
+
+      .badge.promoted {
+        background: #ffd700;
+        color: #000;
+        font-weight: 600;
+      }
+
+      .badge.type {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .accepts-section {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .accept-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .accept-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .accept-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .accept-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.875rem;
+      }
+
+      .accept-detail-row {
+        display: flex;
+        gap: 12px;
+        color: #6b7280;
+      }
+
+      .accept-price {
+        font-weight: 600;
+        color: #111827;
+        font-size: 1rem;
+      }
+
+      .pay-button {
+        background: #111bf5;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        white-space: nowrap;
+        margin-left: 12px;
+      }
+
+      .pay-button:hover {
+        background: #0e16c4;
+      }
+
+      .pay-button:active {
+        background: #0c13a8;
+      }
+
+      .pay-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+      }
+
+      .error {
+        text-align: center;
+        padding: 20px;
+        color: #dc2626;
+        background: #fee2e2;
+        border-radius: 8px;
+        margin: 16px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="loading" class="loading">Loading resources...</div>
+      <div id="error" class="error" style="display: none;"></div>
+      <div id="resource-list" class="resource-list" style="display: none;"></div>
+      <div id="empty" class="empty-state" style="display: none;">
+        No resources found. Try different search criteria.
+      </div>
+    </div>
+
+    <script type="module">
+      const resourceListEl = document.getElementById("resource-list");
+      const loadingEl = document.getElementById("loading");
+      const errorEl = document.getElementById("error");
+      const emptyEl = document.getElementById("empty");
+
+      let resources = [];
+
+      const formatAmount = (amount) => {
+        try {
+          const num = parseFloat(amount);
+          if (isNaN(num)) return amount;
+          return num.toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 6,
+          });
+        } catch {
+          return amount;
+        }
+      };
+
+      const render = () => {
+        if (resources.length === 0) {
+          loadingEl.style.display = "none";
+          errorEl.style.display = "none";
+          resourceListEl.style.display = "none";
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        loadingEl.style.display = "none";
+        errorEl.style.display = "none";
+        emptyEl.style.display = "none";
+        resourceListEl.style.display = "flex";
+
+        resourceListEl.innerHTML = "";
+        resources.forEach((resource) => {
+          const card = document.createElement("div");
+          card.className = "resource-card";
+
+          const header = document.createElement("div");
+          header.className = "resource-header";
+
+          const info = document.createElement("div");
+          info.className = "resource-info";
+
+          const url = document.createElement("div");
+          url.className = "resource-url";
+          url.textContent = resource.resource;
+          info.appendChild(url);
+
+          if (resource.accepts?.[0]?.description) {
+            const desc = document.createElement("div");
+            desc.className = "resource-description";
+            desc.textContent = resource.accepts[0].description;
+            info.appendChild(desc);
+          }
+
+          header.appendChild(info);
+
+          const badges = document.createElement("div");
+          badges.className = "resource-badges";
+
+          if (resource.promoted) {
+            const promotedBadge = document.createElement("span");
+            promotedBadge.className = "badge promoted";
+            promotedBadge.textContent = "PROMOTED";
+            badges.appendChild(promotedBadge);
+          }
+
+          if (resource.type) {
+            const typeBadge = document.createElement("span");
+            typeBadge.className = "badge type";
+            typeBadge.textContent = resource.type.toUpperCase();
+            badges.appendChild(typeBadge);
+          }
+
+          header.appendChild(badges);
+          card.appendChild(header);
+
+          if (resource.accepts && resource.accepts.length > 0) {
+            const acceptsSection = document.createElement("div");
+            acceptsSection.className = "accepts-section";
+
+            resource.accepts.forEach((accept, acceptIndex) => {
+              const acceptItem = document.createElement("div");
+              acceptItem.className = "accept-item";
+
+              const acceptInfo = document.createElement("div");
+              acceptInfo.className = "accept-info";
+
+              const details = document.createElement("div");
+              details.className = "accept-details";
+
+              const priceRow = document.createElement("div");
+              priceRow.className = "accept-detail-row";
+              const price = document.createElement("span");
+              price.className = "accept-price";
+              price.textContent = `${formatAmount(accept.maxAmountRequiredFormatted || accept.maxAmountRequired)} USDC`;
+              priceRow.appendChild(price);
+              details.appendChild(priceRow);
+
+              const metaRow = document.createElement("div");
+              metaRow.className = "accept-detail-row";
+              metaRow.innerHTML = `<span>Network: ${accept.network}</span><span>Scheme: ${accept.scheme}</span>`;
+              details.appendChild(metaRow);
+
+              acceptInfo.appendChild(details);
+              acceptItem.appendChild(acceptInfo);
+
+              const payButton = document.createElement("button");
+              payButton.className = "pay-button";
+              payButton.textContent = "Pay & Call";
+              payButton.setAttribute("aria-label", `Pay and call ${resource.resource}`);
+
+              payButton.addEventListener("click", async () => {
+                if (!window.openai?.invokeTool) {
+                  errorEl.textContent = "Tool invocation not available";
+                  errorEl.style.display = "block";
+                  return;
+                }
+
+                payButton.disabled = true;
+                payButton.textContent = "Processing...";
+
+                try {
+                  await window.openai.invokeTool("make_x402_payment", {
+                    resourceUrl: resource.resource,
+                    method: "GET",
+                  });
+                  payButton.textContent = "Success!";
+                  setTimeout(() => {
+                    payButton.disabled = false;
+                    payButton.textContent = "Pay & Call";
+                  }, 2000);
+                } catch (err) {
+                  console.error("Payment failed:", err);
+                  payButton.textContent = "Failed";
+                  payButton.style.background = "#dc2626";
+                  setTimeout(() => {
+                    payButton.disabled = false;
+                    payButton.textContent = "Pay & Call";
+                    payButton.style.background = "";
+                  }, 3000);
+                }
+              });
+
+              acceptItem.appendChild(payButton);
+              acceptsSection.appendChild(acceptItem);
+            });
+
+            card.appendChild(acceptsSection);
+          }
+
+          resourceListEl.appendChild(card);
+        });
+      };
+
+      const updateFromResponse = (response) => {
+        if (response?.structuredContent?.resources) {
+          resources = response.structuredContent.resources;
+          render();
+        } else if (response?.content) {
+          try {
+            const textContent = response.content.find((c) => c.type === "text")?.text;
+            if (textContent) {
+              const parsed = JSON.parse(textContent);
+              if (parsed.resources) {
+                resources = parsed.resources;
+                render();
+              }
+            }
+          } catch (e) {
+            console.error("Failed to parse response:", e);
+          }
+        }
+      };
+
+      const handleSetGlobals = (event) => {
+        const globals = event.detail?.globals;
+        if (globals?.toolOutput?.resources) {
+          resources = globals.toolOutput.resources;
+          render();
+        } else if (globals?.toolOutput) {
+          updateFromResponse({ structuredContent: globals.toolOutput });
+        }
+      };
+
+      // Initial load
+      if (window.openai?.toolOutput?.resources) {
+        resources = window.openai.toolOutput.resources;
+        render();
+      } else if (window.openai?.toolOutput) {
+        updateFromResponse({ structuredContent: window.openai.toolOutput });
+      }
+
+      window.addEventListener("openai:set_globals", handleSetGlobals, {
+        passive: true,
+      });
+    </script>
+  </body>
+</html>
+

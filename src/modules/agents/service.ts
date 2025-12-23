@@ -71,8 +71,12 @@ export interface SearchAgentsResult {
 
 /**
  * Search for agents that support x402 payments
+ * Includes promotion merging - promoted agents appear first
  */
-export async function searchAgents(params: SearchAgentsParams = {}): Promise<SearchAgentsResult> {
+export async function searchAgents(
+  params: SearchAgentsParams = {},
+  sessionIdHash?: string // For tracking impressions
+): Promise<SearchAgentsResult> {
   const sdk = getSDK();
   
   // Always filter by x402 support if not explicitly set
@@ -86,12 +90,69 @@ export async function searchAgents(params: SearchAgentsParams = {}): Promise<Sea
   try {
     const result = await sdk.searchAgents(searchParams as any);
     
+    // Fetch active promotions for agents
+    const { getActivePromotions } = await import('../promotions/service.js');
+    const { trackPromotedImpression } = await import('../analytics/service.js');
+    
+    const activePromotions = await getActivePromotions({
+      resourceType: 'agent',
+      keyword: params.name,
+    });
+
+    // Create a map of promoted agent IDs
+    const promotedAgentMap = new Map<string, string>(); // agent_id -> promotion_id
+    for (const promotion of activePromotions) {
+      if (promotion.agent_id) {
+        promotedAgentMap.set(promotion.agent_id.toLowerCase(), promotion.id);
+      }
+    }
+
+    // Track impressions for promoted agents (if sessionIdHash provided)
+    if (sessionIdHash) {
+      for (const promotion of activePromotions) {
+        if (promotion.agent_id) {
+          trackPromotedImpression({
+            promotion_id: promotion.id,
+            search_keyword: params.name || undefined,
+            session_id_hash: sessionIdHash,
+          }).catch((err) => {
+            logger.error('Failed to track agent promotion impression', err as Error);
+          });
+        }
+      }
+    }
+
+    // Separate promoted and organic agents
+    const promoted: AgentSummary[] = [];
+    const organic: AgentSummary[] = [];
+    const promotedAgentIds = new Set<string>();
+
+    for (const agent of result.items) {
+      const agentIdLower = agent.agentId.toLowerCase();
+      if (promotedAgentMap.has(agentIdLower)) {
+        promoted.push(agent);
+        promotedAgentIds.add(agentIdLower);
+      } else {
+        organic.push(agent);
+      }
+    }
+
+    // Merge: promoted first, then organic (excluding duplicates)
+    const organicFiltered = organic.filter(
+      (a) => !promotedAgentIds.has(a.agentId.toLowerCase())
+    );
+    const mergedItems = [...promoted, ...organicFiltered];
+    
     logger.debug("Found agents", { 
-      count: result.items.length,
+      count: mergedItems.length,
+      promoted: promoted.length,
       hasNextCursor: !!result.nextCursor 
     });
 
-    return result;
+    return {
+      ...result,
+      items: mergedItems,
+    };
   } catch (error) {
     logger.error("Failed to search agents", error as Error, searchParams as any);
     throw new Error(`Failed to search agents: ${(error as Error).message}`);

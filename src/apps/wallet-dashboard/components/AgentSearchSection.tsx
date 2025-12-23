@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AgentSummary, AgentSearchResponse } from "../types";
 import { styles } from "../styles";
 import { checkAuthError } from "../utils/auth";
+import { PromoteModal } from "./PromoteModal";
 
 interface AgentSearchSectionProps {
   onAgentSelect?: (agent: AgentSummary) => void;
@@ -29,6 +30,13 @@ export function AgentSearchSection({ onAgentSelect }: AgentSearchSectionProps) {
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [pageSize] = useState(20);
+  
+  // Promotion modal state
+  const [promoteModal, setPromoteModal] = useState<{
+    resourceUrl: string;
+    resourceType: 'bazaar' | 'agent';
+    agentId?: string;
+  } | null>(null);
 
   // Don't load on mount - wait for user to search
 
@@ -322,6 +330,18 @@ export function AgentSearchSection({ onAgentSelect }: AgentSearchSectionProps) {
                   <span style={styles.badge}>{agent.active ? "ACTIVE" : "INACTIVE"}</span>
                   <span style={styles.badge}>Chain {agent.chainId}</span>
                   <button
+                    onClick={() => setPromoteModal({ 
+                      resourceUrl: agent.agentId, 
+                      resourceType: 'agent',
+                      agentId: agent.agentId,
+                    })}
+                    style={styles.buttonSecondary}
+                    className="button-secondary"
+                    title="Promote this agent"
+                  >
+                    Promote
+                  </button>
+                  <button
                     onClick={() => toggleExpand(`${agent.chainId}-${agent.agentId}`)}
                     style={styles.iconButton}
                     className="icon-button"
@@ -419,6 +439,15 @@ export function AgentSearchSection({ onAgentSelect }: AgentSearchSectionProps) {
           </div>
         )}
       </div>
+      {promoteModal && (
+        <PromoteModal
+          isOpen={!!promoteModal}
+          onClose={() => setPromoteModal(null)}
+          resourceUrl={promoteModal.resourceUrl}
+          resourceType={promoteModal.resourceType}
+          agentId={promoteModal.agentId}
+        />
+      )}
     </div>
   );
 }

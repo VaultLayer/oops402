@@ -4,6 +4,7 @@ import { formatAmountDisplay, truncateAddress } from "../utils/formatting";
 import { DiscoveryItem, DiscoveryResponse } from "../types";
 import { styles } from "../styles";
 import { checkAuthError } from "../utils/auth";
+import { PromoteModal } from "./PromoteModal";
 
 interface DiscoverySectionProps {
   onPay: (resourceUrl: string, acceptIndex: number, item: DiscoveryItem) => void;
@@ -27,6 +28,10 @@ export function DiscoverySection({ onPay, onOpenDirectCaller }: DiscoverySection
     offset: 0,
     total: 0,
   });
+  const [promoteModal, setPromoteModal] = useState<{
+    resourceUrl: string;
+    resourceType: 'bazaar' | 'agent';
+  } | null>(null);
 
   useEffect(() => {
     // Reset to first page and reload when sort changes
@@ -180,10 +185,23 @@ export function DiscoverySection({ onPay, onOpenDirectCaller }: DiscoverySection
                   )}
                 </div>
                 <div style={styles.discoveryCardActions}>
+                  {item.promoted && (
+                    <span style={{ ...styles.badge, backgroundColor: "#ffd700", color: "#000" }}>
+                      PROMOTED
+                    </span>
+                  )}
                   <span style={styles.badge}>{item.type.toUpperCase()}</span>
                   {item.accepts[0] && (
                     <span style={styles.badge}>{item.accepts[0].network.toUpperCase()}</span>
                   )}
+                  <button
+                    onClick={() => setPromoteModal({ resourceUrl: item.resource, resourceType: 'bazaar' })}
+                    style={styles.buttonSecondary}
+                    className="button-secondary"
+                    title="Promote this resource"
+                  >
+                    Promote
+                  </button>
                   <button
                     onClick={() => toggleExpand(item.resource)}
                     style={styles.iconButton}
@@ -328,6 +346,14 @@ export function DiscoverySection({ onPay, onOpenDirectCaller }: DiscoverySection
           </div>
         )}
       </div>
+      {promoteModal && (
+        <PromoteModal
+          isOpen={!!promoteModal}
+          onClose={() => setPromoteModal(null)}
+          resourceUrl={promoteModal.resourceUrl}
+          resourceType={promoteModal.resourceType}
+        />
+      )}
     </div>
   );
 }

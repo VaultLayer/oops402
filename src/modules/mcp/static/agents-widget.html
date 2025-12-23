@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Agents</title>
+    <style>
+      :root {
+        color: #0b0b0f;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        padding: 16px;
+        background: transparent;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 100%;
+        min-height: 200px;
+      }
+
+      .carousel {
+        position: relative;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding: 8px 0;
+      }
+
+      .carousel::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .carousel::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+      }
+
+      .carousel::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+      }
+
+      .carousel::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      .carousel-inner {
+        display: flex;
+        gap: 16px;
+        padding: 0 8px;
+      }
+
+      .agent-card {
+        flex: 0 0 280px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+      }
+
+      .agent-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .agent-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .agent-image {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+
+      .agent-image-placeholder {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+
+      .agent-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .agent-name {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .agent-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .agent-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+      }
+
+      .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: #f3f4f6;
+        color: #374151;
+        font-weight: 500;
+      }
+
+      .badge.active {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .badge.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .agent-stats {
+        display: flex;
+        gap: 12px;
+        margin-top: 12px;
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .rating {
+        color: #00d4a1;
+        font-weight: 600;
+        margin-top: 8px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+      }
+
+      .error {
+        text-align: center;
+        padding: 20px;
+        color: #dc2626;
+        background: #fee2e2;
+        border-radius: 8px;
+        margin: 16px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="loading" class="loading">Loading agents...</div>
+      <div id="error" class="error" style="display: none;"></div>
+      <div id="carousel" class="carousel" style="display: none;">
+        <div class="carousel-inner" id="carousel-inner"></div>
+      </div>
+      <div id="empty" class="empty-state" style="display: none;">
+        No agents found. Try searching with different criteria.
+      </div>
+    </div>
+
+    <script type="module">
+      const carouselEl = document.getElementById("carousel");
+      const carouselInnerEl = document.getElementById("carousel-inner");
+      const loadingEl = document.getElementById("loading");
+      const errorEl = document.getElementById("error");
+      const emptyEl = document.getElementById("empty");
+
+      let agents = [];
+
+      const render = () => {
+        if (agents.length === 0) {
+          loadingEl.style.display = "none";
+          errorEl.style.display = "none";
+          carouselEl.style.display = "none";
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        loadingEl.style.display = "none";
+        errorEl.style.display = "none";
+        emptyEl.style.display = "none";
+        carouselEl.style.display = "block";
+
+        carouselInnerEl.innerHTML = "";
+        agents.forEach((agent) => {
+          const card = document.createElement("div");
+          card.className = "agent-card";
+          card.setAttribute("role", "button");
+          card.setAttribute("tabindex", "0");
+          card.setAttribute("aria-label", `Agent: ${agent.name}`);
+
+          const header = document.createElement("div");
+          header.className = "agent-header";
+
+          if (agent.image) {
+            const img = document.createElement("img");
+            img.src = agent.image;
+            img.alt = agent.name;
+            img.className = "agent-image";
+            img.onerror = () => {
+              img.style.display = "none";
+              const placeholder = document.createElement("div");
+              placeholder.className = "agent-image-placeholder";
+              placeholder.textContent = "🤖";
+              header.insertBefore(placeholder, header.firstChild);
+            };
+            header.appendChild(img);
+          } else {
+            const placeholder = document.createElement("div");
+            placeholder.className = "agent-image-placeholder";
+            placeholder.textContent = "🤖";
+            header.appendChild(placeholder);
+          }
+
+          const info = document.createElement("div");
+          info.className = "agent-info";
+
+          const name = document.createElement("h3");
+          name.className = "agent-name";
+          name.textContent = agent.name;
+          info.appendChild(name);
+
+          if (agent.description) {
+            const desc = document.createElement("p");
+            desc.className = "agent-description";
+            desc.textContent = agent.description;
+            info.appendChild(desc);
+          }
+
+          header.appendChild(info);
+          card.appendChild(header);
+
+          const badges = document.createElement("div");
+          badges.className = "agent-badges";
+
+          const activeBadge = document.createElement("span");
+          activeBadge.className = `badge ${agent.active ? "active" : "inactive"}`;
+          activeBadge.textContent = agent.active ? "ACTIVE" : "INACTIVE";
+          badges.appendChild(activeBadge);
+
+          const chainBadge = document.createElement("span");
+          chainBadge.className = "badge";
+          chainBadge.textContent = `Chain ${agent.chainId}`;
+          badges.appendChild(chainBadge);
+
+          card.appendChild(badges);
+
+          const stats = document.createElement("div");
+          stats.className = "agent-stats";
+
+          if (agent.mcpTools && agent.mcpTools.length > 0) {
+            const mcpStat = document.createElement("div");
+            mcpStat.className = "stat";
+            mcpStat.textContent = `🔧 ${agent.mcpTools.length} MCP tools`;
+            stats.appendChild(mcpStat);
+          }
+
+          if (agent.a2aSkills && agent.a2aSkills.length > 0) {
+            const a2aStat = document.createElement("div");
+            a2aStat.className = "stat";
+            a2aStat.textContent = `⚡ ${agent.a2aSkills.length} A2A skills`;
+            stats.appendChild(a2aStat);
+          }
+
+          if (stats.children.length > 0) {
+            card.appendChild(stats);
+          }
+
+          if (agent.averageScore !== undefined && agent.averageScore !== null) {
+            const rating = document.createElement("div");
+            rating.className = "rating";
+            rating.textContent = `⭐ ${agent.averageScore.toFixed(1)}/100`;
+            card.appendChild(rating);
+          }
+
+          card.addEventListener("click", async () => {
+            if (window.openai?.invokeTool) {
+              try {
+                await window.openai.invokeTool("list_x402_agent_tools", {
+                  agentId: agent.agentId,
+                });
+              } catch (err) {
+                console.error("Failed to invoke tool:", err);
+              }
+            }
+          });
+
+          card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              card.click();
+            }
+          });
+
+          carouselInnerEl.appendChild(card);
+        });
+      };
+
+      const updateFromResponse = (response) => {
+        if (response?.structuredContent?.agents) {
+          agents = response.structuredContent.agents;
+          render();
+        } else if (response?.content) {
+          // Try to parse JSON from text content
+          try {
+            const textContent = response.content.find((c) => c.type === "text")?.text;
+            if (textContent) {
+              const parsed = JSON.parse(textContent);
+              if (parsed.agents) {
+                agents = parsed.agents;
+                render();
+              }
+            }
+          } catch (e) {
+            console.error("Failed to parse response:", e);
+          }
+        }
+      };
+
+      const handleSetGlobals = (event) => {
+        const globals = event.detail?.globals;
+        if (globals?.toolOutput?.agents) {
+          agents = globals.toolOutput.agents;
+          render();
+        } else if (globals?.toolOutput) {
+          updateFromResponse({ structuredContent: globals.toolOutput });
+        }
+      };
+
+      // Initial load
+      if (window.openai?.toolOutput?.agents) {
+        agents = window.openai.toolOutput.agents;
+        render();
+      } else if (window.openai?.toolOutput) {
+        updateFromResponse({ structuredContent: window.openai.toolOutput });
+      }
+
+      window.addEventListener("openai:set_globals", handleSetGlobals, {
+        passive: true,
+      });
+    </script>
+  </body>
+</html>
+

@@ -2,9 +2,18 @@
 export const USDC_DECIMALS = 6;
 
 // Format raw token amount (in smallest unit) to human-readable format
+// Handles both decimal strings (e.g., "0.09") and BigInt strings (e.g., "90000")
 export function formatTokenAmount(rawAmount: string, decimals: number = USDC_DECIMALS): string {
   try {
-    // Handle bigint strings
+    // Check if the amount is already in decimal format (contains a dot)
+    if (rawAmount.includes('.')) {
+      // Already in decimal format, just parse and return
+      const num = parseFloat(rawAmount);
+      if (isNaN(num)) return rawAmount;
+      return num.toString();
+    }
+    
+    // Handle bigint strings (smallest unit)
     const amount = BigInt(rawAmount);
     const divisor = BigInt(10 ** decimals);
     const whole = amount / divisor;
@@ -20,7 +29,11 @@ export function formatTokenAmount(rawAmount: string, decimals: number = USDC_DEC
     const trimmed = remainderStr.replace(/0+$/, '');
     return `${whole}.${trimmed}`;
   } catch (error) {
-    // If parsing fails, return original
+    // If parsing fails, try to return as-is if it's a valid decimal number
+    const num = parseFloat(rawAmount);
+    if (!isNaN(num)) {
+      return num.toString();
+    }
     console.error("Failed to format token amount:", error);
     return rawAmount;
   }

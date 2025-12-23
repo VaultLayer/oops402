@@ -14,6 +14,7 @@ import { AgentSearchSection } from "./components/AgentSearchSection";
 import { DirectX402Caller } from "./components/DirectX402Caller";
 import { McpConnectionModal } from "./components/McpConnectionModal";
 import { PaymentHistory } from "./components/PaymentHistory";
+import { AnalyticsSection } from "./components/AnalyticsSection";
 import { styles } from "./styles";
 import "./styles.css";
 import { checkAuthError } from "./utils/auth";
@@ -41,7 +42,7 @@ function WalletDashboard() {
     acceptIndex: number;
     discoveryItem: DiscoveryItem;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<"wallet" | "discovery" | "agents">("wallet");
+  const [activeTab, setActiveTab] = useState<"wallet" | "discovery" | "agents" | "analytics">("wallet");
   const [directCallerModalOpen, setDirectCallerModalOpen] = useState(false);
   const [mcpConnectionModalOpen, setMcpConnectionModalOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
@@ -366,6 +367,19 @@ function WalletDashboard() {
           </svg>
           <span>Agents</span>
         </button>
+        <button
+          style={{
+            ...styles.tab,
+            ...(activeTab === "analytics" ? styles.tabActive : {}),
+          }}
+          onClick={() => setActiveTab("analytics")}
+          className={`tab ${activeTab === "analytics" ? "tab-active" : ""}`}
+        >
+          <svg style={styles.tabIcon} viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+          </svg>
+          <span>Analytics</span>
+        </button>
 
       </div>
 
@@ -415,6 +429,10 @@ function WalletDashboard() {
 
       <div style={activeTab === "agents" ? styles.tabContent : styles.tabContentHidden}>
         <AgentSearchSection />
+      </div>
+
+      <div style={activeTab === "analytics" ? styles.tabContent : styles.tabContentHidden}>
+        {wallet && <AnalyticsSection walletAddress={wallet.address} />}
       </div>
 
       {transferForm && wallet && (

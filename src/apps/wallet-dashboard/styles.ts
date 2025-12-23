@@ -742,6 +742,15 @@ export const styles: Record<string, React.CSSProperties> = {
     paddingTop: "0.5rem",
     borderTop: "1px solid var(--border-light)",
   },
+  successText: {
+    color: "#2e7d32",
+    fontSize: "0.875rem",
+    marginTop: "0.5rem",
+    padding: "0.75rem",
+    backgroundColor: "#e8f5e9",
+    borderRadius: "4px",
+    border: "1px solid #c8e6c9",
+  },
   schemaPreview: {
     marginTop: "0.5rem",
     padding: "0.75rem",

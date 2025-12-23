@@ -353,7 +353,83 @@ Agent discovery uses [ERC8004 (Agent0)](https://github.com/agent0-protocol/agent
   - Default: `https://sepolia.infura.io/v3/YOUR_PROJECT_ID`
   - Example: `https://mainnet.base.org` (Base mainnet public RPC)
 
-The Agent0 SDK queries on-chain registries to discover agents that support x402 payments, MCP endpoints, A2A skills, and other capabilities. Both regular search and reputation-based search are supported. 
+The Agent0 SDK queries on-chain registries to discover agents that support x402 payments, MCP endpoints, A2A skills, and other capabilities. Both regular search and reputation-based search are supported.
+
+## Promotion & Analytics System
+
+Oops!402 includes a monetization platform that allows anyone to promote their x402 resources or ERC8004 agents in search results, similar to Google Ads for AI agents. The system tracks all payments and provides analytics on search behavior and resource usage.
+
+### Promotion Features
+
+- **Self-Service Promotions**: Anyone can promote their x402 resources or agents by paying a flat fee
+- **Promoted Results**: Promoted resources appear first in search results with a "Promoted" badge
+- **Schema Validation**: Resources are validated to ensure they have valid x402 schemas before promotion
+- **Performance Tracking**: Track clicks, impressions, CTR, payments received, and revenue for each promotion
+
+### Analytics Features
+
+- **My Promotions Dashboard**: View performance metrics for all your promotions
+  - Total clicks, impressions, and CTR
+  - Payments received and revenue
+  - Conversion rates
+  - Top performing promotions
+- **Global Trends Dashboard**: View aggregated analytics across the platform
+  - Top searched keywords
+  - Most popular tools (by payment volume)
+  - Overall payment statistics
+
+### Promotion Configuration
+
+**Supabase Configuration (Required for promotions):**
+
+- `SUPABASE_URL` - Supabase project URL (required)
+- `SUPABASE_ANON_KEY` - Supabase anonymous key (required)
+- `SUPABASE_KEY` - Supabase service role key (required)
+
+**Promotion Configuration:**
+
+- `PROMOTION_FEE_PER_DAY` - Fee per day for promotions in USDC (optional)
+  - Default: `0.01` (0.01 USDC per day)
+  - Example: `0.05` (0.05 USDC per day)
+  - Users specify the number of days, total fee is calculated as `days × fee_per_day`
+
+- `PROMOTION_PAYMENT_RECIPIENT` - Wallet address that receives promotion payments (optional)
+  - If not set, only transaction amount and sender are validated
+  - If set, transactions must be sent to this address
+  - Example: `0x1234...5678`
+
+- `PROMOTION_CHAIN_ID` - Chain ID for promotion payments (optional)
+  - Default: `8453` (Base mainnet)
+  - Example: `84532` (Base Sepolia testnet)
+
+**Payment Verification:**
+
+Before a promotion is created, the system verifies:
+- The transaction exists and is confirmed on-chain
+- The transaction amount matches the calculated fee (`days × fee_per_day`)
+- The transaction is sent from the expected wallet address
+- The transaction is sent to the configured recipient (if `PROMOTION_PAYMENT_RECIPIENT` is set)
+
+**Database Setup:**
+
+Run the SQL schema in `docs/supabase-schema.sql` on your Supabase database to create the required tables:
+- `oops402_promotions` - Active promotions
+- `oops402_payments` - All payments tracked
+- `oops402_promotion_payments` - Links payments to promotions
+- `oops402_search_analytics` - Search query tracking
+- `oops402_click_analytics` - Click tracking for promoted results
+- `oops402_promotion_impressions` - Impression tracking for CTR calculation
+
+### Privacy & Legal Considerations
+
+**Privacy Compliance:**
+
+- Only wallet addresses are stored (pseudonymous, not personal data)
+- Session IDs are hashed before storage
+- No IP addresses or personal identification data is stored
+- Analytics are aggregated, not per-user
+- Users pay directly to resource owners via x402
+- Payment tracking is passive observation, not payment processing
 
 ### Testing Features With MCP Inspector
 
@@ -410,7 +486,14 @@ npm run test:e2e  # End-to-end tests
 │   │   │   └── service.ts    # Agent0 SDK integration for on-chain agent discovery
 │   │   ├── x402/             # x402 payment protocol integration
 │   │   │   ├── bazaarService.ts # Coinbase x402 Bazaar crawling and caching
+│   │   │   ├── schemaValidation.ts # Shared x402 schema validation logic
 │   │   │   └── service.ts    # x402 payment execution
+│   │   ├── promotions/       # Promotion system
+│   │   │   ├── service.ts    # Promotion CRUD and validation
+│   │   │   └── types.ts      # Promotion type definitions
+│   │   ├── analytics/        # Analytics and tracking
+│   │   │   ├── service.ts    # Payment, search, click, and impression tracking
+│   │   │   └── types.ts      # Analytics type definitions
 │   │   ├── mcp/              # MCP protocol implementation
 │   │   │   ├── handlers/     # Streamable HTTP and SSE handlers
 │   │   │   ├── services/     # MCP core and Redis transport
@@ -418,12 +501,14 @@ npm run test:e2e  # End-to-end tests
 │   │   │   └── types.ts      # MCP type definitions
 │   │   └── shared/           # Shared utilities
 │   │       ├── logger.ts     # Logging configuration
-│   │       └── redis.ts      # Redis client with mock fallback
+│   │       ├── redis.ts      # Redis client with mock fallback
+│   │       └── supabase.ts   # Supabase client initialization
 │   └── static/               # Static web assets
 ├── examples/                 # Example client implementations
 │   ├── client.js             # Node.js client with OAuth flow
 │   └── curl-examples.sh      # Shell script with curl examples
 ├── docs/                     # Additional Documentation
+│   └── supabase-schema.sql  # Supabase database schema for promotions/analytics
 ├── tests/                    # Test files
 ├── .env.example              # Environment variable template
 ├── docker-compose.yml        # Docker setup for Redis
